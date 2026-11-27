@@ -8,7 +8,7 @@
 :root{--bg:#fff;--fg:#1a1a1a;--mut:#6b7280;--card:#f3f4f6;--acc:#2563eb;--line:#e5e7eb}
 @media(prefers-color-scheme:dark){:root{--bg:#111318;--fg:#eceff4;--mut:#9aa3b2;--card:#1b1f27;--acc:#6ea0ff;--line:#2a2f3a}}
 *{box-sizing:border-box}
-body{margin:0;font:16px system-ui,sans-serif;background:var(--bg);color:var(--fg);padding-bottom:150px}
+body{margin:0;font:16px system-ui,sans-serif;background:var(--bg);color:var(--fg);padding-bottom:230px}
 main{max-width:640px;margin:0 auto;padding:16px}
 h1{font-size:22px;margin:8px 0 16px}
 input,button{font:inherit;color:inherit}
@@ -27,8 +27,10 @@ li span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #player .in{max-width:640px;margin:0 auto}
 #now{font-weight:600;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #audio{width:100%;height:40px}
-.ctl{display:flex;gap:8px;margin-top:6px}
-.ctl button{flex:1}
+.ctl{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.ctl button{flex:1 1 40%}
+.ctl button.act{background:var(--acc);color:#fff}
+li .sm{background:none;color:var(--mut);padding:2px 6px;font-size:15px}
 .err{color:#dc2626;font-size:14px;min-height:20px}
 .hide{display:none}
 </style>
@@ -67,6 +69,8 @@ li span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     <div class="ctl">
       <button class="ghost" id="prev">⏮ 이전</button>
       <button class="ghost" id="next">다음 ⏭</button>
+      <button class="ghost" id="shuf">🔀 셔플 끔</button>
+      <button class="ghost" id="rep">🔁 반복 끔</button>
     </div>
   </div>
 </div>
@@ -74,7 +78,7 @@ li span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 <script>
 const $ = (s) => document.querySelector(s);
 const audio = $("#audio");
-let CFG, S = null, tracks = [], cur = -1;
+let CFG, S = null, tracks = [], curId = null, shuffle = false, rep = 0, queue = [], qpos = -1;
 const LIMIT_GB = 9.5;
 
 /* ---------- 로그인 / 토큰 ---------- */
@@ -119,6 +123,7 @@ const fmt = (s) => (s ? Math.floor(s / 60) + ":" + String(Math.round(s % 60)).pa
 
 async function load() {
   tracks = await sb("/rest/v1/tracks?select=id,title,artist,duration_sec,file_key,file_size&order=created_at.desc&limit=1000");
+  if (curId && byId(curId) >= 0) buildQueue(curId);
   render();
   const used = await sb("/rest/v1/rpc/used_bytes", { method: "POST", body: "{}" });
   $("#usage").textContent = (used / 1073741824).toFixed(2) + " / " + LIMIT_GB + " GB 사용";
@@ -129,16 +134,50 @@ function render() {
   $("#empty").textContent = tracks.length ? "" : "아직 곡이 없어요. 위에서 mp3나 wav를 추가해 보세요.";
   tracks.forEach((t, i) => {
     const li = document.createElement("li");
-    if (i === cur) li.className = "on";
+    if (t.id === curId) li.className = "on";
     const a = document.createElement("span");
     a.textContent = t.title + (t.artist ? " — " + t.artist : "");
     const b = document.createElement("span");
     b.className = "mut";
     b.textContent = fmt(t.duration_sec);
-    li.append(a, b);
+    li.append(a, b, btn("✏️", () => edit(t)), btn("🗑", () => del(t)));
     li.onclick = () => play(i);
     ul.append(li);
   });
+}
+
+const btn = (label, fn) => {
+  const b = document.createElement("button");
+  b.className = "sm";
+  b.textContent = label;
+  b.onclick = (e) => { e.stopPropagation(); fn(); };
+  return b;
+};
+async function edit(t) {
+  const title = prompt("제목", t.title);
+  if (title === null || !title.trim()) return;
+  const artist = prompt("아티스트 (없으면 비워 두세요)", t.artist || "");
+  if (artist === null) return;
+  await sb("/rest/v1/tracks?id=eq." + t.id, {
+    method: "PATCH",
+    body: JSON.stringify({ title: title.trim(), artist: artist.trim() || null }),
+  });
+  await load();
+}
+async function del(t) {
+  if (!confirm("'" + t.title + "' 곡을 삭제할까요? 되돌릴 수 없어요.")) return;
+  const r = await api("/api/delete", { method: "POST", body: JSON.stringify({ id: t.id }) });
+  if (!r.ok) {
+    const d = await r.json().catch(() => ({}));
+    alert("삭제 실패: " + (d.error || r.status) + (d.detail ? " " + d.detail : ""));
+    return;
+  }
+  if (t.id === curId) {
+    audio.pause(); audio.removeAttribute("src"); audio.load();
+    curId = null; queue = [];
+    $("#now").textContent = "재생 중인 곡이 없어요";
+  }
+  await load();
 }
 
 /* ---------- 재생 ---------- */
@@ -152,10 +191,25 @@ async function urlFor(key) {
   cache[key] = { url: d.url, exp: Date.now() + (d.expiresIn - 300) * 1000 };
   return d.url;
 }
-async function play(i) {
-  if (!tracks[i]) return;
-  cur = i;
+const byId = (id) => tracks.findIndex((t) => t.id === id);
+function buildQueue(startId) {
+  const ids = tracks.map((t) => t.id);
+  if (shuffle) {
+    for (let i = ids.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [ids[i], ids[j]] = [ids[j], ids[i]];
+    }
+    const k = ids.indexOf(startId);
+    if (k > 0) { ids.splice(k, 1); ids.unshift(startId); }
+  }
+  queue = ids;
+  qpos = Math.max(0, ids.indexOf(startId));
+}
+async function play(i, keep) {
   const t = tracks[i];
+  if (!t) return;
+  curId = t.id;
+  if (!keep) buildQueue(t.id);
   try {
     audio.src = await urlFor(t.file_key);
     await audio.play();
@@ -165,10 +219,30 @@ async function play(i) {
   if ("mediaSession" in navigator)
     navigator.mediaSession.metadata = new MediaMetadata({ title: t.title, artist: t.artist || "" });
 }
-const step = (d) => tracks.length && play((cur + d + tracks.length) % tracks.length);
+function step(d, auto) {
+  if (!queue.length) return;
+  if (!auto && d < 0 && audio.currentTime > 3) { audio.currentTime = 0; return; }
+  let p = qpos + d;
+  if (p >= queue.length) { if (auto && rep !== 1) return; p = 0; }
+  if (p < 0) p = queue.length - 1;
+  qpos = p;
+  play(byId(queue[p]), true);
+}
 $("#prev").onclick = () => step(-1);
 $("#next").onclick = () => step(1);
-audio.onended = () => { if (cur < tracks.length - 1) play(cur + 1); }; // 연속 재생
+$("#shuf").onclick = () => {
+  shuffle = !shuffle;
+  $("#shuf").textContent = shuffle ? "🔀 셔플 켬" : "🔀 셔플 끔";
+  $("#shuf").classList.toggle("act", shuffle);
+  if (curId) buildQueue(curId);
+};
+$("#rep").onclick = () => {
+  rep = (rep + 1) % 3;
+  $("#rep").textContent = ["🔁 반복 끔", "🔁 전체 반복", "🔂 한 곡 반복"][rep];
+  $("#rep").classList.toggle("act", rep > 0);
+  audio.loop = rep === 2;
+};
+audio.onended = () => step(1, true); // 연속 재생
 if ("mediaSession" in navigator) {
   const m = navigator.mediaSession;
   m.setActionHandler("play", () => audio.play());
