@@ -185,13 +185,20 @@ const getDuration = (f) => new Promise((ok) => {
   a.onerror = () => ok(0);
   a.src = u;
 });
-const put = (url, f, type, cb) => new Promise((ok, no) => {
+const send = (f, ext, t, cb) => new Promise((ok, no) => {
   const x = new XMLHttpRequest();
-  x.open("PUT", url);
-  x.setRequestHeader("Content-Type", type);
+  x.open("POST", "/api/upload?ext=" + ext);
+  x.setRequestHeader("Authorization", "Bearer " + t);
+  x.setRequestHeader("Content-Type", "application/octet-stream");
   x.upload.onprogress = (e) => e.lengthComputable && cb(Math.round((e.loaded / e.total) * 100));
-  x.onload = () => (x.status < 300 ? ok() : no(new Error("B2 업로드 실패 (" + x.status + ")")));
-  x.onerror = () => no(new Error("네트워크 또는 CORS 오류"));
+  x.onload = () => {
+    let d = {};
+    try { d = JSON.parse(x.responseText); } catch {}
+    if (x.status < 300) return ok(d);
+    no(new Error(d.error === "quota" ? "용량 한도(" + LIMIT_GB + "GB)를 넘어요"
+      : (d.error || "업로드 실패") + (d.detail ? " " + d.detail : "") + " (" + x.status + ")"));
+  };
+  x.onerror = () => no(new Error("네트워크 오류"));
   x.send(f);
 });
 async function up(f) {
@@ -201,10 +208,8 @@ async function up(f) {
   try {
     const ext = (f.name.split(".").pop() || "").toLowerCase();
     const dur = await getDuration(f);
-    const r = await api("/api/upload-url", { method: "POST", body: JSON.stringify({ ext, size: f.size }) });
-    const d = await r.json();
-    if (!r.ok) throw new Error(d.error === "quota" ? "용량 한도(" + LIMIT_GB + "GB)를 넘어요" : d.error);
-    await put(d.url, f, d.contentType, (p) => (row.textContent = f.name + " " + p + "%"));
+    if (f.size > 95 * 1048576) throw new Error("파일이 너무 커요 (약 95MB 이하만 가능)");
+    const d = await send(f, ext, await token(), (p) => (row.textContent = f.name + " " + p + "%"));
     await sb("/rest/v1/tracks", {
       method: "POST",
       body: JSON.stringify({
