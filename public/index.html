@@ -66,6 +66,20 @@ li.ed{cursor:default;gap:10px}
 .edbox input{width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--fg)}
 li.pl .tt{font-weight:600}
 h2{font-size:17px;margin:4px 0 10px}
+@media (min-width:900px){
+  body{padding-bottom:110px}
+  main{max-width:1300px;padding:24px 40px}
+  #list,#editList,#plTracks,#plList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:28px;align-content:start}
+  #player .in{max-width:1300px;display:grid;grid-template-columns:minmax(180px,1fr) minmax(280px,2fr) auto;align-items:center;gap:20px}
+  #player .np{margin-bottom:0}
+  #player .ctl{margin-top:0;flex-wrap:nowrap}
+  .ctl button,.ctl #qBtn{flex:0 0 auto;padding:10px 16px}
+  .tabs{max-width:640px}
+}
+@media (min-width:1500px){
+  main,#player .in{max-width:1700px}
+  #list,#editList,#plTracks,#plList{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
 </style>
 </head>
 <body>
@@ -843,7 +857,7 @@ function renderQueue() {
 }
 function toggleQueue(force) {
   const open = force === undefined ? !qOpen() : force;
-  if (open) { renderQueue(); qPanel.style.bottom = $("#player").offsetHeight + 8 + "px"; }
+  if (open) { renderQueue(); qPanel.style.bottom = $("#player").offsetHeight + 8 + "px"; qPanel.style.right = Math.max(12, innerWidth - $("#qBtn").getBoundingClientRect().right) + "px"; }
   qPanel.classList.toggle("hide", !open);
 }
 $("#qBtn").onclick = () => toggleQueue();
