@@ -32,7 +32,9 @@ li span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #now{font-weight:600;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #audio{width:100%;height:40px}
 .ctl{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
-.ctl button{flex:1 1 40%}
+.ctl button{flex:1 1 30%}
+#q{flex:1;min-width:0;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg)}
+.bar select#sort{flex:0 0 auto}
 .ctl button.act{background:var(--acc);color:#fff}
 li{align-items:center}
 li .tt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -41,7 +43,7 @@ li .tt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:now
 .np{display:flex;gap:10px;align-items:center;margin-bottom:6px}
 .np #now{margin:0;min-width:0}
 .bar select{flex:1;min-width:0;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg)}
-dialog{border:1px solid var(--line);border-radius:14px;background:var(--bg);color:var(--fg);min-width:260px;max-width:90vw}
+dialog{max-height:80vh;overflow:auto;border:1px solid var(--line);border-radius:14px;background:var(--bg);color:var(--fg);min-width:260px;max-width:90vw}
 dialog button{display:block;width:100%;margin:6px 0}
 li .sm{background:none;color:var(--mut);padding:2px 6px;font-size:15px}
 .err{color:#dc2626;font-size:14px;min-height:20px}
@@ -82,6 +84,13 @@ li .sm{background:none;color:var(--mut);padding:2px 6px;font-size:15px}
       <button class="ghost hide" id="plSave">⬇ 저장</button>
     </div>
     <p class="mut" id="msg"></p>
+    <div class="bar">
+      <input id="q" type="search" placeholder="검색 (제목, 아티스트)">
+      <select id="sort">
+        <option value="new">최신순</option><option value="old">오래된순</option>
+        <option value="title">이름순</option><option value="artist">아티스트순</option>
+      </select>
+    </div>
     <ul id="list"></ul>
     <p class="mut" id="empty"></p>
   </section>
@@ -96,6 +105,8 @@ li .sm{background:none;color:var(--mut);padding:2px 6px;font-size:15px}
       <button class="ghost" id="next">다음 ⏭</button>
       <button class="ghost" id="shuf">🔀 셔플 끔</button>
       <button class="ghost" id="rep">🔁 반복 끔</button>
+      <button class="ghost" id="favBtn">♡ 즐겨찾기</button>
+      <button class="ghost" id="qBtn">☰ 대기열</button>
     </div>
   </div>
 </div>
@@ -106,7 +117,7 @@ li .sm{background:none;color:var(--mut);padding:2px 6px;font-size:15px}
 <script>
 const $ = (s) => document.querySelector(s);
 const audio = $("#audio");
-let CFG, S = null, tracks = [], curId = null, shuffle = false, rep = 0, queue = [], qpos = -1, plists = [], plId = null, plItems = [], coverTarget = null, allPl = [], saved = new Set(), curBlob = null;
+let CFG, S = null, tracks = [], curId = null, shuffle = false, rep = 0, queue = [], qpos = -1, plists = [], plId = null, plItems = [], coverTarget = null, allPl = [], saved = new Set(), curBlob = null, favView = false, pendingSeek = 0, lastSave = 0;
 const LIMIT_GB = 9.5;
 
 /* ---------- 로그인 / 토큰 ---------- */
@@ -152,9 +163,9 @@ const fmt = (s) => (s ? Math.floor(s / 60) + ":" + String(Math.round(s % 60)).pa
 
 async function load() {
   try {
-    tracks = await sb("/rest/v1/tracks?select=id,title,artist,duration_sec,file_key,file_size,cover_path&order=created_at.desc&limit=1000");
+    tracks = await sb("/rest/v1/tracks?select=id,title,artist,duration_sec,file_key,file_size,cover_path,fav&order=created_at.desc&limit=1000");
     await loadPlaylists();
-    localStorage.setItem("cache", JSON.stringify({ tracks, plists, allPl }));
+    cacheNow();
     const used = await sb("/rest/v1/rpc/used_bytes", { method: "POST", body: "{}" });
     $("#usage").textContent = (used / 1073741824).toFixed(2) + " / " + LIMIT_GB + " GB 사용";
   } catch (e) {
@@ -167,14 +178,32 @@ async function load() {
   if (curId && view().some((t) => t.id === curId)) buildQueue(curId);
   render();
 }
-const view = () => (plId ? plItems.map((id) => tracks[byId(id)]).filter(Boolean) : tracks);
+const collator = new Intl.Collator("ko");
+const base = () => (plId ? plItems.map((id) => tracks[byId(id)]).filter(Boolean) : favView ? tracks.filter((t) => t.fav) : tracks);
+const view = () => {
+  let v = base();
+  const q = ($("#q").value || "").trim().toLowerCase();
+  if (q) v = v.filter((t) => (t.title + " " + (t.artist || "")).toLowerCase().includes(q));
+  if (!plId) {
+    const m = $("#sort").value;
+    if (m !== "new") {
+      v = [...v];
+      if (m === "old") v.reverse();
+      else if (m === "title") v.sort((a, b) => collator.compare(a.title, b.title));
+      else if (m === "artist") v.sort((a, b) => (a.artist ? 0 : 1) - (b.artist ? 0 : 1) || collator.compare(a.artist || "", b.artist || "") || collator.compare(a.title, b.title));
+    }
+  }
+  return v;
+};
 const coverUrl = (t) => (t.cover_path ? CFG.url + "/storage/v1/object/public/covers/" + t.cover_path : "");
 
 function render() {
   const ul = $("#list"), v = view();
   ul.replaceChildren();
   $("#empty").textContent = v.length ? ""
-    : plId ? "비어 있어요. '전체 곡'에서 ➕ 버튼으로 곡을 담아 보세요."
+    : $("#q").value.trim() ? "검색 결과가 없어요."
+    : favView ? "즐겨찾기한 곡이 없어요. 곡 옆의 ♡를 눌러 보세요."
+    : plId ? "비어 있어요. '전체 곡'에서 곡 옆의 ⋯ 메뉴로 담아 보세요."
     : "아직 곡이 없어요. 위에서 mp3나 wav를 추가해 보세요.";
   v.forEach((t, n) => {
     const li = document.createElement("li");
@@ -190,11 +219,14 @@ function render() {
     b.className = "mut";
     b.textContent = (saved.has(t.file_key) ? "⬇ " : "") + fmt(t.duration_sec);
     li.append(th, a, b);
-    if (plId) li.append(btn("▲", () => move(n, -1)), btn("▼", () => move(n, 1)));
-    li.append(btn("⋯", () => menu(t)));
+    if (plId && !$("#q").value.trim()) li.append(btn("▲", () => move(n, -1)), btn("▼", () => move(n, 1)));
+    const hb = btn(t.fav ? "♥" : "♡", () => toggleFav(t));
+    if (t.fav) hb.style.color = "#ef4444";
+    li.append(hb, btn("⋯", () => menu(t)));
     li.onclick = () => play(byId(t.id));
     ul.append(li);
   });
+  syncFavBtn();
 }
 const btn = (label, fn) => {
   const b = document.createElement("button");
@@ -307,6 +339,8 @@ async function play(i, keep) {
   if (!t) return;
   curId = t.id;
   if (!keep) buildQueue(t.id);
+  pendingSeek = 0;
+  saveQueue();
   const my = ++playSeq;
   announce(t); // 화면이 꺼져 있어도 반영되도록 가장 먼저 갱신
   try {
@@ -357,7 +391,10 @@ $("#rep").onclick = () => {
 audio.onended = () => step(1, true); // 연속 재생
 audio.addEventListener("play", () => { if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "playing"; });
 audio.addEventListener("pause", () => { if ("mediaSession" in navigator && !audio.ended) navigator.mediaSession.playbackState = "paused"; });
-audio.addEventListener("loadedmetadata", syncPos);
+audio.addEventListener("loadedmetadata", () => {
+  if (pendingSeek) { audio.currentTime = pendingSeek; pendingSeek = 0; }
+  syncPos();
+});
 audio.addEventListener("seeked", syncPos);
 if ("mediaSession" in navigator) {
   const m = navigator.mediaSession;
@@ -499,7 +536,7 @@ async function toggleSave(t) {
   render();
 }
 async function savePlaylist() {
-  const todo = view().filter((t) => !saved.has(t.file_key));
+  const todo = base().filter((t) => !saved.has(t.file_key));
   if (!todo.length) { alert("이미 모두 저장돼 있어요"); return; }
   const mb = Math.round(todo.reduce((n, t) => n + (t.file_size || 0), 0) / 1048576);
   if (!confirm(todo.length + "곡 (약 " + mb + "MB)을 이 기기에 저장할까요?")) return;
@@ -519,6 +556,8 @@ async function menu(t) {
   const add = (l, f) => { labels.push(l); acts.push(f); };
   if (plId) add("플레이리스트에서 빼기", () => removeFrom(t));
   else add("플레이리스트에 담기", () => addTo(t));
+  add("다음에 재생", () => enqueue(t, true));
+  add("대기열 끝에 추가", () => enqueue(t, false));
   add(saved.has(t.file_key) ? "이 기기에서 저장 해제" : "이 기기에 저장 (오프라인용)", () => toggleSave(t));
   add("제목·아티스트 수정", () => edit(t));
   add("자켓 이미지 설정", () => { coverTarget = t; $("#coverIn").click(); });
@@ -537,8 +576,9 @@ function applyPl() {
   if (plId && !plists.some((p) => p.id === plId)) plId = null;
   plItems = plId ? allPl.filter((r) => r.playlist_id === plId).map((r) => r.track_id) : [];
   const sel = $("#pl");
-  sel.replaceChildren(new Option("전체 곡", ""), ...plists.map((p) => new Option(p.name, p.id)));
-  sel.value = plId || "";
+  sel.replaceChildren(new Option("전체 곡", ""), new Option("♥ 즐겨찾기", "fav"), ...plists.map((p) => new Option(p.name, p.id)));
+  sel.value = favView ? "fav" : plId || "";
+  $("#sort").disabled = !!plId;
   for (const id of ["#plRen", "#plDel", "#plSave"]) $(id).classList.toggle("hide", !plId);
 }
 function pick(title, items) {
@@ -595,7 +635,9 @@ async function move(n, d) {
   await loadPlaylists();
 }
 $("#pl").onchange = async () => {
-  plId = $("#pl").value || null;
+  const v = $("#pl").value;
+  favView = v === "fav";
+  plId = v && !favView ? v : null;
   applyPl();
   if (curId && view().some((t) => t.id === curId)) buildQueue(curId);
   render();
@@ -657,13 +699,121 @@ $("#coverIn").onchange = async (e) => {
   } catch (err) { alert("자켓 설정 실패: " + err.message); }
 };
 
+/* ---------- 즐겨찾기 · 대기열 · 검색 · 이어 듣기 ---------- */
+function cacheNow() { try { localStorage.setItem("cache", JSON.stringify({ tracks, plists, allPl })); } catch {} }
+function syncFavBtn() {
+  const t = tracks[byId(curId)], b = $("#favBtn");
+  b.textContent = t && t.fav ? "♥ 즐겨찾기" : "♡ 즐겨찾기";
+  b.classList.toggle("act", !!(t && t.fav));
+}
+async function toggleFav(t) {
+  const v = !t.fav;
+  t.fav = v;
+  render();
+  try {
+    await sb("/rest/v1/tracks?id=eq." + t.id, { method: "PATCH", body: JSON.stringify({ fav: v }) });
+    cacheNow();
+  } catch (e) { t.fav = !v; render(); alert("즐겨찾기를 바꾸지 못했어요: " + e.message); }
+}
+$("#favBtn").onclick = () => { const t = tracks[byId(curId)]; if (t) toggleFav(t); };
+
+function saveQueue() { try { localStorage.setItem("rq", JSON.stringify({ queue, qpos })); } catch {} }
+function enqueue(t, next) {
+  if (curId == null || !queue.length) { play(byId(t.id)); return; }
+  if (t.id === curId) return;
+  const ix = queue.indexOf(t.id);
+  if (ix >= 0) { queue.splice(ix, 1); if (ix < qpos) qpos--; }
+  queue.splice(next ? qpos + 1 : queue.length, 0, t.id);
+  saveQueue();
+  prefetch();
+  $("#msg").textContent = next ? "다음에 재생해요" : "대기열 끝에 추가했어요";
+  setTimeout(() => { if ($("#msg").textContent.includes("대기열") || $("#msg").textContent.includes("다음에")) $("#msg").textContent = ""; }, 2000);
+}
+async function showQueue() {
+  if (!queue.length) { alert("재생 대기열이 비어 있어요. 곡을 재생하면 채워져요."); return; }
+  const up = queue.slice(qpos, qpos + 100);
+  const labels = up.map((id, k) => { const t = tracks[byId(id)]; return (k === 0 ? "▶ " : k + ". ") + (t ? t.title : "(삭제된 곡)"); });
+  const more = queue.length - (qpos + 100);
+  if (more > 0) labels.push("… 외 " + more + "곡");
+  const k = await pick("재생 대기열 (탭하면 그 곡으로 이동)", labels);
+  if (k <= 0 || k >= up.length) return;
+  qpos += k;
+  play(byId(queue[qpos]), true);
+}
+$("#qBtn").onclick = showQueue;
+
+$("#q").oninput = () => render();
+$("#sort").onchange = () => { render(); saveResume(true); };
+
+// 이어 듣기: 마지막 곡, 위치, 설정을 이 기기에 기억
+function saveResume(force) {
+  const now = Date.now();
+  if (!force && now - lastSave < 4000) return;
+  lastSave = now;
+  if (!curId) return;
+  try {
+    localStorage.setItem("resume", JSON.stringify({
+      curId, pos: pendingSeek || audio.currentTime || 0, shuffle, rep, plId, favView, sort: $("#sort").value,
+    }));
+  } catch {}
+}
+audio.addEventListener("timeupdate", () => saveResume());
+audio.addEventListener("pause", () => saveResume(true));
+document.addEventListener("visibilitychange", () => { if (document.hidden) saveResume(true); });
+
+function ctlUi() {
+  $("#shuf").textContent = shuffle ? "🔀 셔플 켬" : "🔀 셔플 끔";
+  $("#shuf").classList.toggle("act", shuffle);
+  $("#rep").textContent = ["🔁 반복 끔", "🔁 전체 반복", "🔂 한 곡 반복"][rep];
+  $("#rep").classList.toggle("act", rep > 0);
+}
+async function restore() {
+  let r, rq;
+  try {
+    r = JSON.parse(localStorage.getItem("resume") || "null");
+    rq = JSON.parse(localStorage.getItem("rq") || "null");
+  } catch { return; }
+  if (!r) return;
+  shuffle = !!r.shuffle;
+  rep = r.rep || 0;
+  audio.loop = rep === 2;
+  ctlUi();
+  if (r.sort) $("#sort").value = r.sort;
+  plId = r.plId && plists.some((p) => p.id === r.plId) ? r.plId : null;
+  favView = !!r.favView && !plId;
+  applyPl();
+  render();
+  const i = byId(r.curId);
+  if (i < 0) return;
+  await refreshSaved();
+  curId = r.curId;
+  const ids = rq && rq.queue ? rq.queue.filter((id) => byId(id) >= 0) : [];
+  if (ids.includes(curId)) { queue = ids; qpos = ids.indexOf(curId); } else buildQueue(curId);
+  const t = tracks[i];
+  try {
+    const src = await resolveSrc(t);
+    curBlob = src.blob ? src.url : null;
+    pendingSeek = r.pos || 0;
+    audio.preload = "metadata";
+    audio.src = src.url;
+  } catch {}
+  $("#now").textContent = t.title + (t.artist ? " — " + t.artist : "");
+  const cu = coverUrl(t), pc = $("#pcov");
+  pc.classList.toggle("hide", !cu);
+  if (cu) pc.src = cu;
+  announce(t);
+  if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "paused";
+  render();
+  prefetch();
+}
+
 /* ---------- 시작 ---------- */
 function start() {
   $("#login").classList.add("hide");
   $("#app").classList.remove("hide");
   $("#player").classList.remove("hide");
   refreshSaved();
-  load().catch((e) => ($("#empty").textContent = "목록을 불러오지 못했어요: " + e.message));
+  load().then(restore).catch((e) => ($("#empty").textContent = "목록을 불러오지 못했어요: " + e.message));
 }
 $("#lbtn").onclick = async () => {
   $("#lerr").textContent = "";
