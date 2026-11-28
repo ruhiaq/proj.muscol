@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Musecoll">
 <style>
-:root{--bg:#0e0e11;--bg2:#15151a;--card:#1b1b22;--line:#2a2a33;--fg:#f4f4f6;--mut:#9a9aa8;--acc:#8b5cf6;--acc2:#ec4899;color-scheme:dark}
+:root{--w:1100px;--bg:#0e0e11;--bg2:#15151a;--card:#1b1b22;--line:#2a2a33;--fg:#f4f4f6;--mut:#9a9aa8;--acc:#8b5cf6;--acc2:#ec4899;color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;font:15px/1.4 system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:var(--bg);color:var(--fg);padding-bottom:190px}
 button,input,select{font:inherit;color:inherit}
@@ -23,7 +23,7 @@ svg.f{fill:currentColor;stroke:none}
 h2{font-size:20px;margin:0 0 10px}
 .top{position:static;display:grid;grid-template-columns:1fr auto;grid-template-areas:"brand out" "search search" "nav nav";align-items:center;gap:10px;padding:10px 14px;background:rgba(14,14,17,.88);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);z-index:15}
 .brand{grid-area:brand;display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;letter-spacing:.3px}
-.brand .logo{width:28px;height:28px;stroke:none}
+.brand .logo{width:28px;height:28px;stroke:none;fill:url(#lg)}
 .brand span{background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
 .tabs{grid-area:nav;display:flex;gap:4px;background:var(--card);border-radius:12px;padding:4px}
 .tabs button{flex:1;padding:8px 2px;font-size:13px;font-weight:600;color:var(--mut);border-radius:9px;white-space:nowrap}
@@ -31,7 +31,7 @@ h2{font-size:20px;margin:0 0 10px}
 .search{grid-area:search;display:flex;align-items:center;gap:8px;height:40px;padding:0 14px;background:var(--card);border:1px solid var(--line);border-radius:20px;color:var(--mut)}
 .search input{flex:1;min-width:0;background:none;border:0;outline:0;color:var(--fg)}
 #logout{grid-area:out}
-main{max-width:1300px;margin:0 auto;padding:16px 14px}
+main{max-width:var(--w);margin:0 auto;padding:16px 14px}
 .hero{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;padding:22px;border-radius:18px;margin-bottom:14px;background:linear-gradient(135deg,rgba(139,92,246,.38),rgba(236,72,153,.2) 55%,rgba(27,27,34,.4))}
 .hero h2{font-size:28px;margin:4px 0}
 .acts{display:flex;gap:8px;flex-wrap:wrap}
@@ -58,7 +58,7 @@ select{padding:8px 12px;border-radius:18px;background:var(--card);border:1px sol
 .th.clk{cursor:pointer;outline:2px solid transparent}
 .th.clk:hover{outline-color:var(--acc)}
 .tx{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ar{color:var(--mut)}
+.ar{color:var(--mut);display:inline-block;max-width:38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom}
 .ti{font-weight:600}
 .dur{color:var(--mut);font-size:13px;display:flex;align-items:center;gap:6px;flex:none}
 .dl{display:inline-flex;color:var(--acc)}
@@ -81,7 +81,7 @@ li.ed:hover{background:none}
 #login h2{text-align:center;margin:0 0 4px}
 .err{color:#f87171;font-size:14px;min-height:20px}
 #player{position:fixed;left:0;right:0;bottom:0;z-index:18;background:rgba(21,21,26,.95);backdrop-filter:blur(16px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
-.pin{max-width:1300px;margin:0 auto;padding:8px 14px;display:grid;grid-template-columns:1fr;grid-template-areas:"pr" "pt" "pc";gap:6px;align-items:center}
+.pin{max-width:var(--w);margin:0 auto;padding:8px 14px;display:grid;grid-template-columns:1fr;grid-template-areas:"pr" "pt" "pc";gap:6px;align-items:center}
 .pr{grid-area:pr;display:flex;align-items:center;gap:10px;min-width:0}
 .pt{grid-area:pt;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--mut)}
 .pt span{width:36px;text-align:center;flex:none}
@@ -111,7 +111,7 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
 @media (min-width:600px){.edbox{grid-template-columns:1fr 1fr}}
 @media (min-width:900px){
   body{padding-bottom:110px}
-  .top{position:sticky;top:0;grid-template-columns:auto 1fr auto auto;grid-template-areas:"brand nav search out";gap:12px 28px;padding:12px 28px}
+  .top{position:sticky;top:0;grid-template-columns:auto 1fr auto auto;grid-template-areas:"brand nav search out";gap:12px 28px;padding:12px max(28px,calc((100vw - var(--w) + 56px)/2))}
   .tabs{background:none;padding:0;gap:6px}
   .tabs button{flex:none;padding:10px 14px;font-size:15px;border-radius:8px}
   .tabs button:hover{color:var(--fg)}
@@ -124,8 +124,55 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
   #vol{display:block;width:90px}
   .pn{max-width:240px}
 }
-@media (min-width:1100px){
-  #list,#editList,#plTracks,#plList{display:grid;grid-template-columns:1fr 1fr;column-gap:32px;align-content:start}
+.pn,#pcov{cursor:pointer}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:22px 16px}
+.pcard{cursor:pointer}
+.pcov{aspect-ratio:1;border-radius:14px;overflow:hidden;background:linear-gradient(135deg,#3b2a6b,#6b2150);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.55);box-shadow:0 10px 28px rgba(0,0,0,.4);transition:transform .2s,box-shadow .2s}
+.pcov img{width:100%;height:100%;object-fit:cover;display:block}
+.pcov svg{width:34%;height:34%}
+.pcard:hover .pcov{transform:translateY(-4px) scale(1.02);box-shadow:0 18px 40px rgba(0,0,0,.55)}
+.pn2{margin-top:10px;font-weight:700;font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.phd{display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap}
+.bigcov{width:130px;flex:none}
+#np{position:fixed;inset:0;z-index:30;background:var(--bg);transform:translateY(100%);visibility:hidden;transition:transform .38s cubic-bezier(.22,.8,.2,1),visibility 0s .38s;overflow:hidden}
+#np.open{transform:none;visibility:visible;transition:transform .38s cubic-bezier(.22,.8,.2,1)}
+#npBg{position:absolute;inset:-60px;background:linear-gradient(135deg,#3b2a6b,#6b2150) center/cover;filter:blur(60px) saturate(1.4) brightness(.5)}
+.np-in{position:relative;height:100%;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+.np-top{display:flex;align-items:center;gap:10px;padding:12px 16px}
+.np-label{flex:1;text-align:center;font-weight:700;letter-spacing:.5px}
+.np-top .auto{display:flex;align-items:center;gap:6px;cursor:pointer}
+.np-body{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;overflow-y:auto;padding:0 20px 28px}
+.np-main{width:min(100%,460px);display:flex;flex-direction:column;align-items:center;gap:16px}
+.np-art{width:min(78vw,42vh,420px);aspect-ratio:1;border-radius:14px;background:var(--card) center/cover no-repeat;box-shadow:0 24px 60px rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;color:var(--mut)}
+.np-art svg{width:30%;height:30%}
+.np-art:not(.empty) svg{display:none}
+.np-meta{text-align:center;width:100%}
+.np-title{font-size:22px;font-weight:800;line-height:1.25;overflow-wrap:anywhere}
+.np-seek{width:100%;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--mut)}
+.np-seek input{flex:1;min-width:0}
+.np-seek span{width:36px;text-align:center;flex:none}
+.np-ctl{display:flex;align-items:center;justify-content:center;gap:14px}
+.ib.big svg{width:26px;height:26px}
+.play.lg{width:64px;height:64px}
+.play.lg svg{width:28px;height:28px}
+.np-ctl2{display:flex;align-items:center;justify-content:space-between;width:100%}
+.vol{display:none;align-items:center;gap:8px}
+.np-q{width:min(100%,460px);margin-top:26px}
+.np-q h3{margin:0 0 8px;font-size:15px;color:var(--mut)}
+.nq{display:flex;align-items:center;gap:12px;padding:8px;border-radius:10px;cursor:pointer}
+.nq:hover{background:rgba(255,255,255,.07)}
+.nq.on{background:rgba(255,255,255,.12)}
+.nq .th{width:44px;height:44px}
+.nq .tx{display:flex;flex-direction:column;line-height:1.3}
+@media (min-width:900px){
+  .pgrid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:30px 24px}
+  .pn2{font-size:17px}
+  .bigcov{width:170px}
+  .np-body{flex-direction:row;align-items:center;justify-content:center;gap:64px;overflow:hidden;padding:0 48px 28px}
+  .np-main{width:min(46vw,480px)}
+  .np-art{width:min(34vw,52vh,440px)}
+  .np-q{width:min(34vw,420px);max-height:100%;overflow-y:auto;margin-top:0}
+  .vol{display:flex}
 }
 </style>
 </head>
@@ -203,12 +250,12 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
     <div id="tab-pl" class="hide">
       <div id="plListView">
         <div class="bar"><h2>플레이리스트</h2><button class="pri" id="plNew"><span data-ic="plus"></span>새 목록</button></div>
-        <ul id="plList" class="tl"></ul>
+        <div id="plList" class="pgrid"></div>
         <p class="mut" id="plEmpty0"></p>
       </div>
       <div id="plDetail" class="hide">
         <div class="hero">
-          <div><button class="ghost sm" id="plBack">← 목록</button><h2 id="plName"></h2></div>
+          <div class="phd"><div class="pcov bigcov" id="plCov"></div><div><button class="ghost sm" id="plBack">← 목록</button><h2 id="plName"></h2><div class="mut" id="plSub"></div></div></div>
           <div class="acts">
             <button class="pri" id="plPlay"><span data-ic="play"></span>재생</button>
             <button class="ghost" id="plSave">기기에 저장</button>
@@ -232,15 +279,46 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
       <button class="ib" id="next" data-ic="next" title="다음"></button>
       <button class="ib" id="rep" data-ic="repeat" title="반복"></button>
     </div>
-    <div class="pt"><span id="tcur">0:00</span><input id="seek" type="range" min="0" max="1000" value="0"><span id="tdur">0:00</span></div>
+    <div class="pt"><span class="tcur">0:00</span><input id="seek" type="range" min="0" max="1000" value="0"><span class="tdur">0:00</span></div>
     <div class="pr">
       <button class="ib" id="mute" title="음소거"></button><input id="vol" type="range" min="0" max="100" value="100">
       <img id="pcov" class="cov hide" alt="">
       <div class="pn"><div id="now">재생 중인 곡이 없어요</div></div>
+      <button class="ib" id="npOpen" data-ic="up" title="재생 화면 열기"></button>
       <button class="ib" id="favBtn" title="즐겨찾기"></button>
       <button class="ib" id="qBtn" data-ic="queue" title="재생 대기열"></button>
     </div>
     <audio id="audio" preload="none"></audio>
+  </div>
+</div>
+
+<div id="np">
+  <div id="npBg"></div>
+  <div class="np-in">
+    <div class="np-top">
+      <button class="ib" id="npClose" data-ic="down" title="닫기"></button>
+      <span class="np-label">재생 중</span>
+      <label class="mut sm auto"><input type="checkbox" id="autoNP"> 선택 시 자동으로 열기</label>
+    </div>
+    <div class="np-body">
+      <div class="np-main">
+        <div id="npArt" class="np-art empty"><span data-ic="music"></span></div>
+        <div class="np-meta"><div id="npTitle" class="np-title"></div><div id="npArtist" class="mut"></div></div>
+        <div class="np-seek"><span class="tcur">0:00</span><input id="npSeek" type="range" min="0" max="1000" value="0"><span class="tdur">0:00</span></div>
+        <div class="np-ctl">
+          <button class="ib" id="npShuf" data-ic="shuffle" title="셔플"></button>
+          <button class="ib big" id="npPrev" data-ic="prev" title="이전"></button>
+          <button class="play lg" id="npPP" title="재생/일시정지"></button>
+          <button class="ib big" id="npNext" data-ic="next" title="다음"></button>
+          <button class="ib" id="npRep" data-ic="repeat" title="반복"></button>
+        </div>
+        <div class="np-ctl2">
+          <button class="ib" id="npFav" title="즐겨찾기"></button>
+          <span class="vol"><button class="ib" id="npMute" title="음소거"></button><input id="npVol" type="range" min="0" max="100" value="100" style="width:110px"></span>
+        </div>
+      </div>
+      <div class="np-q"><h3>다음 곡</h3><div id="npQ"></div></div>
+    </div>
   </div>
 </div>
 
@@ -277,6 +355,7 @@ const ICONS = {
 const setIc = (el, name) => (el.innerHTML = ICONS[name]);
 document.querySelectorAll("[data-ic]").forEach((e) => setIc(e, e.dataset.ic));
 setIc($("#pp"), "play"); setIc($("#favBtn"), "heart"); setIc($("#mute"), "vol");
+setIc($("#npPP"), "play"); setIc($("#npFav"), "heart"); setIc($("#npMute"), "vol");
 const audio = $("#audio");
 let CFG, S = null, tracks = [], curId = null, shuffle = false, rep = 0, queue = [], qpos = -1, plists = [], plId = null, plItems = [], coverTarget = null, allPl = [], saved = new Set(), curBlob = null, favView = false, pendingSeek = 0, lastSave = 0;
 const LIMIT_GB = 9.5;
@@ -398,7 +477,7 @@ function rowsInto(ul, v, mode) {
     if (t.fav) hb.classList.add("hot");
     ra.append(hb, btn("more", () => menu(t, mode), "더 보기"));
     li.append(num, thumb(t), tx, du, ra);
-    li.onclick = () => { ctx = mode; play(byId(t.id)); };
+    li.onclick = () => { ctx = mode; userPlay(byId(t.id)); };
     ul.append(li);
   });
 }
@@ -455,6 +534,7 @@ async function del(t) {
   }
   if (t.id === curId) {
     $("#pcov").classList.add("hide");
+    closeNP();
     audio.pause(); audio.removeAttribute("src"); audio.load();
     curId = null; queue = [];
     $("#now").textContent = "재생 중인 곡이 없어요";
@@ -511,10 +591,10 @@ async function prefetch() {
   } catch {}
 }
 function announce(t) {
-  $("#tdur").textContent = tfmt(t.duration_sec);
-  $("#tcur").textContent = "0:00";
-  $("#seek").value = 0;
-  fill($("#seek"));
+  setText(".tdur", tfmt(t.duration_sec));
+  setText(".tcur", "0:00");
+  for (const x of seeks) { x.value = 0; fill(x); }
+  paintNP(t);
   if (!("mediaSession" in navigator)) return;
   const cu = coverUrl(t);
   navigator.mediaSession.metadata = new MediaMetadata({
@@ -559,7 +639,7 @@ async function play(i, keep) {
   const cu = coverUrl(t), pc = $("#pcov");
   pc.classList.toggle("hide", !cu);
   if (cu) pc.src = cu;
-  if (qOpen()) renderQueue();
+  refreshQueueUIs();
   prefetch();
 }
 function step(d, auto) {
@@ -571,19 +651,12 @@ function step(d, auto) {
   qpos = p;
   play(byId(queue[p]), true);
 }
-$("#prev").onclick = () => step(-1);
-$("#next").onclick = () => step(1);
-$("#shuf").onclick = () => {
-  shuffle = !shuffle;
-  $("#shuf").classList.toggle("act", shuffle);
-  if (curId) buildQueue(curId);
-};
-$("#rep").onclick = () => {
-  rep = (rep + 1) % 3;
-  setIc($("#rep"), ["repeat", "repeat", "repeat1"][rep]);
-  $("#rep").classList.toggle("act", rep > 0);
-  audio.loop = rep === 2;
-};
+$("#prev").onclick = $("#npPrev").onclick = () => step(-1);
+$("#next").onclick = $("#npNext").onclick = () => step(1);
+function toggleShuffle() { shuffle = !shuffle; ctlUi(); if (curId) { buildQueue(curId); saveQueue(); } refreshQueueUIs(); }
+function cycleRepeat() { rep = (rep + 1) % 3; audio.loop = rep === 2; ctlUi(); }
+$("#shuf").onclick = $("#npShuf").onclick = toggleShuffle;
+$("#rep").onclick = $("#npRep").onclick = cycleRepeat;
 audio.onended = () => step(1, true); // 연속 재생
 audio.addEventListener("play", () => { if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "playing"; });
 audio.addEventListener("pause", () => { if ("mediaSession" in navigator && !audio.ended) navigator.mediaSession.playbackState = "paused"; });
@@ -765,6 +838,19 @@ async function loadPlaylists() {
   allPl = await sb("/rest/v1/playlist_tracks?select=playlist_id,track_id,position&order=position&limit=1000");
   applyPl();
 }
+function repCover(pid) {
+  return allPl.filter((r) => r.playlist_id === pid).map((r) => tracks[byId(r.track_id)]).find((t) => t && t.cover_path) || null;
+}
+function coverBox(el, t) {
+  el.replaceChildren();
+  if (t) {
+    const im = document.createElement("img");
+    im.src = coverUrl(t);
+    im.alt = "";
+    im.loading = "lazy";
+    el.append(im);
+  } else el.innerHTML = ICONS.music;
+}
 function applyPl() {
   if (plId && !plists.some((p) => p.id === plId)) plId = null;
   plItems = plId ? allPl.filter((r) => r.playlist_id === plId).map((r) => r.track_id) : [];
@@ -772,26 +858,28 @@ function applyPl() {
   ul.replaceChildren();
   $("#plEmpty0").textContent = plists.length ? "" : "아직 플레이리스트가 없어요. '＋ 새 목록'으로 만들어 보세요.";
   plists.forEach((p) => {
-    const items = allPl.filter((r) => r.playlist_id === p.id);
-    const first = tracks[byId(items[0] && items[0].track_id)] || {};
-    const li = document.createElement("li");
-    const tx = document.createElement("span");
-    tx.className = "tx";
-    const ti = document.createElement("span");
-    ti.className = "ti";
-    ti.textContent = p.name;
-    tx.append(ti);
-    const c = document.createElement("span");
-    c.className = "dur";
-    c.textContent = items.length + "곡";
-    li.append(thumb(first), tx, c);
-    li.onclick = () => { plId = p.id; applyPl(); };
-    ul.append(li);
+    const n = allPl.filter((r) => r.playlist_id === p.id).length;
+    const card = document.createElement("div");
+    card.className = "pcard";
+    const cv = document.createElement("div");
+    cv.className = "pcov";
+    coverBox(cv, repCover(p.id));
+    const nm = document.createElement("div");
+    nm.className = "pn2";
+    nm.textContent = p.name;
+    const c = document.createElement("div");
+    c.className = "mut";
+    c.textContent = n + "곡";
+    card.append(cv, nm, c);
+    card.onclick = () => { plId = p.id; applyPl(); };
+    ul.append(card);
   });
   $("#plListView").classList.toggle("hide", !!plId);
   $("#plDetail").classList.toggle("hide", !plId);
   const cur = plists.find((p) => p.id === plId);
   $("#plName").textContent = cur ? cur.name : "";
+  $("#plSub").textContent = cur ? plItems.length + "곡" : "";
+  coverBox($("#plCov"), cur ? repCover(cur.id) : null);
   render();
 }
 function pick(title, items) {
@@ -855,7 +943,7 @@ $("#plPlay").onclick = () => {
   const v = plTracks();
   if (!v.length) return;
   ctx = "pl";
-  play(byId(v[0].id));
+  userPlay(byId(v[0].id));
 };
 $("#plNew").onclick = async () => {
   const name = prompt("새 플레이리스트 이름");
@@ -917,9 +1005,11 @@ $("#coverIn").onchange = async (e) => {
 /* ---------- 즐겨찾기 · 대기열 · 검색 · 이어 듣기 ---------- */
 function cacheNow() { try { localStorage.setItem("cache", JSON.stringify({ tracks, plists, allPl })); } catch {} }
 function syncFavBtn() {
-  const t = tracks[byId(curId)], b = $("#favBtn");
-  setIc(b, t && t.fav ? "heartF" : "heart");
-  b.classList.toggle("act", !!(t && t.fav));
+  const t = tracks[byId(curId)];
+  for (const b of [$("#favBtn"), $("#npFav")]) {
+    setIc(b, t && t.fav ? "heartF" : "heart");
+    b.classList.toggle("act", !!(t && t.fav));
+  }
 }
 async function toggleFav(t) {
   const v = !t.fav;
@@ -930,7 +1020,7 @@ async function toggleFav(t) {
     cacheNow();
   } catch (e) { t.fav = !v; render(); alert("즐겨찾기를 바꾸지 못했어요: " + e.message); }
 }
-$("#favBtn").onclick = () => { const t = tracks[byId(curId)]; if (t) toggleFav(t); };
+$("#favBtn").onclick = $("#npFav").onclick = () => { const t = tracks[byId(curId)]; if (t) toggleFav(t); };
 
 function saveQueue() { try { localStorage.setItem("rq", JSON.stringify({ queue, qpos })); } catch {} }
 function enqueue(t, next) {
@@ -941,7 +1031,7 @@ function enqueue(t, next) {
   queue.splice(next ? qpos + 1 : queue.length, 0, t.id);
   saveQueue();
   prefetch();
-  if (qOpen()) renderQueue();
+  refreshQueueUIs();
   $("#msg").textContent = next ? "다음에 재생해요" : "대기열 끝에 추가했어요";
   setTimeout(() => { if ($("#msg").textContent.includes("대기열") || $("#msg").textContent.includes("다음에")) $("#msg").textContent = ""; }, 2000);
 }
@@ -984,7 +1074,10 @@ function toggleQueue(force) {
   qPanel.classList.toggle("hide", !open);
 }
 $("#qBtn").onclick = () => toggleQueue();
-document.addEventListener("keydown", (e) => { if (e.key === "Escape" && qOpen()) toggleQueue(false); });
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape") return;
+  if (qOpen()) toggleQueue(false); else if (npOpen()) closeNP();
+});
 document.addEventListener("pointerdown", (e) => {
   if (qOpen() && !qPanel.contains(e.target) && !$("#qBtn").contains(e.target)) toggleQueue(false);
 });
@@ -1009,9 +1102,11 @@ audio.addEventListener("pause", () => saveResume(true));
 document.addEventListener("visibilitychange", () => { if (document.hidden) saveResume(true); });
 
 function ctlUi() {
-  $("#shuf").classList.toggle("act", shuffle);
-  setIc($("#rep"), ["repeat", "repeat", "repeat1"][rep]);
-  $("#rep").classList.toggle("act", rep > 0);
+  for (const b of [$("#shuf"), $("#npShuf")]) b.classList.toggle("act", shuffle);
+  for (const b of [$("#rep"), $("#npRep")]) {
+    setIc(b, ["repeat", "repeat", "repeat1"][rep]);
+    b.classList.toggle("act", rep > 0);
+  }
 }
 async function restore() {
   let r, rq;
@@ -1106,36 +1201,104 @@ function showTab(n) {
 }
 document.querySelectorAll("#nav button").forEach((b) => (b.onclick = () => showTab(b.dataset.t)));
 
-/* ---------- 재생바: 재생/일시정지, 진행 막대, 볼륨 ---------- */
+/* ---------- 재생바 + 재생 화면 공통: 재생/일시정지, 진행 막대, 볼륨 ---------- */
 const tfmt = (x) => (isFinite(x) && x > 0 ? Math.floor(x / 60) + ":" + String(Math.floor(x % 60)).padStart(2, "0") : "0:00");
 const fill = (el) => el.style.setProperty("--p", (el.value / el.max) * 100 + "%");
+const setText = (sel, v) => document.querySelectorAll(sel).forEach((e) => (e.textContent = v));
+const seeks = [$("#seek"), $("#npSeek")], vols = [$("#vol"), $("#npVol")];
 let seeking = false;
-const syncPP = () => setIc($("#pp"), audio.paused ? "play" : "pause");
-$("#pp").onclick = () => { if (!audio.src) { const v = libView(); if (v.length) { ctx = "lib"; play(byId(v[0].id)); } return; } audio.paused ? audio.play() : audio.pause(); };
+const syncPP = () => { for (const b of [$("#pp"), $("#npPP")]) setIc(b, audio.paused ? "play" : "pause"); };
+const togglePlay = () => {
+  if (!audio.src) { const v = libView(); if (v.length) { ctx = "lib"; play(byId(v[0].id)); } return; }
+  audio.paused ? audio.play() : audio.pause();
+};
+$("#pp").onclick = $("#npPP").onclick = togglePlay;
 ["play", "pause", "ended"].forEach((ev) => audio.addEventListener(ev, syncPP));
 audio.addEventListener("timeupdate", () => {
-  $("#tcur").textContent = tfmt(audio.currentTime);
-  if (!seeking && audio.duration) { $("#seek").value = (audio.currentTime / audio.duration) * 1000; fill($("#seek")); }
+  setText(".tcur", tfmt(audio.currentTime));
+  if (!seeking && audio.duration) for (const x of seeks) { x.value = (audio.currentTime / audio.duration) * 1000; fill(x); }
 });
-["loadedmetadata", "durationchange"].forEach((ev) => audio.addEventListener(ev, () => { if (isFinite(audio.duration)) $("#tdur").textContent = tfmt(audio.duration); }));
-$("#seek").oninput = () => { seeking = true; fill($("#seek")); if (audio.duration) $("#tcur").textContent = tfmt(($("#seek").value / 1000) * audio.duration); };
-$("#seek").onchange = () => { if (audio.duration) audio.currentTime = ($("#seek").value / 1000) * audio.duration; seeking = false; };
+["loadedmetadata", "durationchange"].forEach((ev) => audio.addEventListener(ev, () => { if (isFinite(audio.duration)) setText(".tdur", tfmt(audio.duration)); }));
+for (const x of seeks) {
+  x.oninput = () => { seeking = true; fill(x); if (audio.duration) setText(".tcur", tfmt((x.value / 1000) * audio.duration)); };
+  x.onchange = () => { if (audio.duration) audio.currentTime = (x.value / 1000) * audio.duration; seeking = false; };
+}
 const vol0 = Number(localStorage.getItem("vol") ?? 100);
-$("#vol").value = vol0; audio.volume = vol0 / 100; fill($("#vol")); setIc($("#mute"), vol0 ? "vol" : "mute");
-$("#vol").oninput = () => {
-  const v = Number($("#vol").value);
-  audio.volume = v / 100; audio.muted = false; fill($("#vol"));
-  setIc($("#mute"), v ? "vol" : "mute");
-  localStorage.setItem("vol", v);
-};
-$("#mute").onclick = () => { audio.muted = !audio.muted; setIc($("#mute"), audio.muted || !audio.volume ? "mute" : "vol"); };
+audio.volume = vol0 / 100;
+vols.forEach((x) => { x.value = vol0; fill(x); });
+const muteUi = () => { for (const b of [$("#mute"), $("#npMute")]) setIc(b, audio.muted || !audio.volume ? "mute" : "vol"); };
+muteUi();
+vols.forEach((x) => (x.oninput = () => {
+  const n = Number(x.value);
+  audio.volume = n / 100; audio.muted = false;
+  vols.forEach((y) => { y.value = n; fill(y); });
+  muteUi();
+  localStorage.setItem("vol", n);
+}));
+$("#mute").onclick = $("#npMute").onclick = () => { audio.muted = !audio.muted; muteUi(); };
 
-$("#playAll").onclick = () => { const v = libView(); if (!v.length) return; ctx = "lib"; play(byId(v[0].id)); };
+/* ---------- 재생 화면 (재생바에서 위로 올라오는 전체 화면) ---------- */
+const npEl = $("#np");
+const npOpen = () => npEl.classList.contains("open");
+const autoOpen = () => localStorage.getItem("autoNP") !== "0";
+function openNP() {
+  if (!curId) return;
+  toggleQueue(false);
+  npEl.classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+function closeNP() {
+  npEl.classList.remove("open");
+  document.body.style.overflow = "";
+}
+function userPlay(i) { play(i); if (autoOpen()) openNP(); }
+function paintNP(t) {
+  const cu = coverUrl(t);
+  $("#npArt").style.backgroundImage = cu ? 'url("' + cu + '")' : "";
+  $("#npArt").classList.toggle("empty", !cu);
+  $("#npBg").style.backgroundImage = cu ? 'url("' + cu + '")' : "";
+  $("#npTitle").textContent = t.title;
+  $("#npArtist").textContent = t.artist || "";
+  renderNPQ();
+}
+function renderNPQ() {
+  const box = $("#npQ");
+  box.replaceChildren();
+  queue.slice(qpos + 1, qpos + 101).forEach((id, k) => {
+    const t = tracks[byId(id)];
+    if (!t) return;
+    const d = document.createElement("div");
+    d.className = "nq";
+    const tx = document.createElement("div");
+    tx.className = "tx";
+    const ti = document.createElement("span");
+    ti.className = "ti";
+    ti.textContent = t.title;
+    const ar = document.createElement("span");
+    ar.className = "ar";
+    ar.textContent = t.artist || "";
+    tx.append(ti, ar);
+    d.append(thumb(t), tx);
+    d.onclick = () => { qpos += k + 1; play(byId(queue[qpos]), true); };
+    box.append(d);
+  });
+  if (!box.children.length) { const e = document.createElement("div"); e.className = "mut sm"; e.textContent = "다음 곡이 없어요."; box.append(e); }
+}
+function refreshQueueUIs() { if (qOpen()) renderQueue(); renderNPQ(); }
+$("#npClose").onclick = closeNP;
+$("#npOpen").onclick = $("#pcov").onclick = document.querySelector(".pn").onclick = openNP;
+$("#autoNP").checked = autoOpen();
+$("#autoNP").onchange = () => localStorage.setItem("autoNP", $("#autoNP").checked ? "1" : "0");
+let ty = null;
+npEl.addEventListener("touchstart", (e) => { ty = e.target.closest(".np-q, input") ? null : e.touches[0].clientY; }, { passive: true });
+npEl.addEventListener("touchend", (e) => { if (ty != null && e.changedTouches[0].clientY - ty > 90) closeNP(); ty = null; }, { passive: true });
+
+$("#playAll").onclick = () => { const v = libView(); if (!v.length) return; ctx = "lib"; userPlay(byId(v[0].id)); };
 $("#shufAll").onclick = () => {
   const v = libView();
   if (!v.length) return;
   shuffle = true; ctlUi(); ctx = "lib";
-  play(byId(v[Math.floor(Math.random() * v.length)].id));
+  userPlay(byId(v[Math.floor(Math.random() * v.length)].id));
 };
 
 /* 업로드 영역에 파일 끌어다 놓기 */
