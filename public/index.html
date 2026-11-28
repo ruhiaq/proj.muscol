@@ -68,6 +68,10 @@ li .sm{background:none;color:var(--mut);padding:2px 6px;font-size:15px}
       <label>곡 추가 (mp3, wav · 여러 개 선택 가능)<br>
         <input id="file" type="file" accept=".mp3,.wav,audio/mpeg,audio/wav" multiple>
       </label>
+      <div class="mut" style="margin-top:8px">
+        <label><input type="checkbox" id="conv" checked> wav는 mp3로 변환해서 올리기 (용량 절약)</label>
+        <select id="kbps"><option value="192" selected>192kbps</option><option value="256">256kbps</option><option value="320">320kbps</option></select>
+      </div>
       <div class="st" id="st"></div>
     </div>
     <div class="bar">
@@ -346,21 +350,61 @@ const send = (f, ext, t, cb) => new Promise((ok, no) => {
   x.onerror = () => no(new Error("네트워크 오류"));
   x.send(f);
 });
+/* ---------- wav → mp3 변환 (이 컴퓨터의 브라우저에서 처리) ---------- */
+let lamePromise;
+const loadLame = () => (lamePromise ||= new Promise((ok, no) => {
+  if (window.lamejs) return ok();
+  const sc = document.createElement("script");
+  sc.src = "https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js";
+  sc.onload = ok;
+  sc.onerror = () => { lamePromise = null; no(new Error("변환 도구를 불러오지 못했어요 (인터넷 확인)")); };
+  document.head.append(sc);
+}));
+async function wavToMp3(file, kbps, cb) {
+  await loadLame();
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const buf = await ctx.decodeAudioData(await file.arrayBuffer());
+  ctx.close();
+  const ch = Math.min(2, buf.numberOfChannels);
+  const enc = new lamejs.Mp3Encoder(ch, buf.sampleRate, kbps);
+  const L = buf.getChannelData(0), R = ch > 1 ? buf.getChannelData(1) : null;
+  const to16 = (a, i, n) => {
+    const o = new Int16Array(n);
+    for (let k = 0; k < n; k++) { const v = Math.max(-1, Math.min(1, a[i + k])); o[k] = v < 0 ? v * 32768 : v * 32767; }
+    return o;
+  };
+  const parts = [], step = 1152 * 20;
+  for (let i = 0, c = 0; i < L.length; i += step, c++) {
+    const n = Math.min(step, L.length - i);
+    const out = ch > 1 ? enc.encodeBuffer(to16(L, i, n), to16(R, i, n)) : enc.encodeBuffer(to16(L, i, n));
+    if (out.length) parts.push(out);
+    if (c % 5 === 0) { cb(Math.round((i / L.length) * 100)); await new Promise((r) => setTimeout(r)); }
+  }
+  const end = enc.flush();
+  if (end.length) parts.push(end);
+  return new Blob(parts, { type: "audio/mpeg" });
+}
+
 async function up(f) {
   const row = document.createElement("div");
   row.textContent = f.name;
   $("#st").append(row);
   try {
-    const ext = (f.name.split(".").pop() || "").toLowerCase();
+    let ext = (f.name.split(".").pop() || "").toLowerCase();
     const dur = await getDuration(f);
-    if (f.size > 95 * 1048576) throw new Error("파일이 너무 커요 (약 95MB 이하만 가능)");
-    const d = await send(f, ext, await token(), (p) => (row.textContent = f.name + " " + p + "%"));
+    let file = f;
+    if (ext === "wav" && $("#conv").checked) {
+      file = await wavToMp3(f, Number($("#kbps").value), (p) => (row.textContent = f.name + " mp3로 변환 중 " + p + "%"));
+      ext = "mp3";
+    }
+    if (file.size > 95 * 1048576) throw new Error("파일이 너무 커요 (약 95MB 이하만 가능)");
+    const d = await send(file, ext, await token(), (p) => (row.textContent = f.name + " " + p + "%"));
     await sb("/rest/v1/tracks", {
       method: "POST",
       body: JSON.stringify({
         title: f.name.replace(/\.[^.]+$/, ""),
         duration_sec: Math.round(dur) || null,
-        file_key: d.key, file_size: f.size, mime: d.contentType,
+        file_key: d.key, file_size: file.size, mime: d.contentType,
       }),
     });
     row.textContent = "✓ " + f.name;
