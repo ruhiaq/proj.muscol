@@ -10,152 +10,213 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Musecoll">
 <style>
-:root{--bg:#fff;--fg:#1a1a1a;--mut:#6b7280;--card:#f3f4f6;--acc:#2563eb;--line:#e5e7eb}
-@media(prefers-color-scheme:dark){:root{--bg:#111318;--fg:#eceff4;--mut:#9aa3b2;--card:#1b1f27;--acc:#6ea0ff;--line:#2a2f3a}}
+:root{--bg:#0e0e11;--bg2:#15151a;--card:#1b1b22;--line:#2a2a33;--fg:#f4f4f6;--mut:#9a9aa8;--acc:#8b5cf6;--acc2:#ec4899;color-scheme:dark}
 *{box-sizing:border-box}
-body{margin:0;font:16px system-ui,sans-serif;background:var(--bg);color:var(--fg);padding-bottom:200px}
-main{max-width:640px;margin:0 auto;padding:16px}
-h1{font-size:22px;margin:8px 0 16px}
-input,button{font:inherit;color:inherit}
-input[type=email],input[type=password]{width:100%;padding:12px;margin:6px 0;border:1px solid var(--line);border-radius:10px;background:var(--card)}
-button{padding:10px 16px;border:0;border-radius:10px;background:var(--acc);color:#fff;cursor:pointer}
-button.ghost{background:var(--card);color:var(--fg)}
-.bar{flex-wrap:wrap;display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
-.mut{color:var(--mut);font-size:14px}
-.up{border:2px dashed var(--line);border-radius:12px;padding:14px;margin:12px 0}
-.st div{font-size:14px;margin-top:6px;word-break:break-all}
-ul{list-style:none;margin:0;padding:0}
-li{display:flex;justify-content:space-between;gap:8px;padding:12px;border-bottom:1px solid var(--line);cursor:pointer;border-radius:8px}
-li.on{background:var(--card);font-weight:600}
-li span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#player{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
-#player .in{max-width:640px;margin:0 auto}
-#now{font-weight:600;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#audio{width:100%;height:40px}
-.ctl{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
-.ctl button{flex:1 1 0;padding:10px 6px}
-.ctl #qBtn{flex:0 0 auto;padding:10px 14px}
-#q{flex:1;min-width:0;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg)}
-.bar select#sort{flex:0 0 auto}
-.ctl button.act{background:var(--acc);color:#fff}
-li{align-items:center}
-li .tt{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.th,.cov{width:44px;height:44px;border-radius:8px;object-fit:cover;background:var(--line);flex:none}
-.th{display:flex;align-items:center;justify-content:center;color:var(--mut);cursor:pointer;overflow:hidden}
-.np{display:flex;gap:10px;align-items:center;margin-bottom:6px}
-.np #now{margin:0;min-width:0}
-.bar select{flex:1;min-width:0;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--fg)}
-dialog{max-height:80vh;overflow:auto;border:1px solid var(--line);border-radius:14px;background:var(--bg);color:var(--fg);min-width:260px;max-width:90vw}
-dialog button{display:block;width:100%;margin:6px 0}
-li .sm{background:none;color:var(--mut);padding:2px 6px;font-size:15px}
-.err{color:#dc2626;font-size:14px;min-height:20px}
+body{margin:0;font:15px/1.4 system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:var(--bg);color:var(--fg);padding-bottom:190px}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0}
+svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+svg.f{fill:currentColor;stroke:none}
 .hide{display:none!important}
-.top{display:flex;justify-content:space-between;align-items:center;margin:4px 0 12px}
-.top h1{margin:0;font-size:26px;font-weight:800;letter-spacing:.5px;color:var(--acc)}
-.tabs{display:flex;gap:6px;margin-bottom:14px}
-.tabs button{flex:1 1 0;min-width:0;white-space:nowrap;padding:8px 2px;font-size:12px;line-height:1.6;background:var(--card);color:var(--fg)}
-.tabs button.on{background:var(--acc);color:#fff}
-#msg{position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:30;max-width:90vw;background:var(--card);border:1px solid var(--line);padding:8px 14px;border-radius:10px;font-size:14px}
+.mut{color:var(--mut)}
+.sm{font-size:13px}
+h2{font-size:20px;margin:0 0 10px}
+.top{position:static;display:grid;grid-template-columns:1fr auto;grid-template-areas:"brand out" "search search" "nav nav";align-items:center;gap:10px;padding:10px 14px;background:rgba(14,14,17,.88);backdrop-filter:blur(14px);border-bottom:1px solid var(--line);z-index:15}
+.brand{grid-area:brand;display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;letter-spacing:.3px}
+.brand .logo{width:28px;height:28px;stroke:none}
+.brand span{background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.tabs{grid-area:nav;display:flex;gap:4px;background:var(--card);border-radius:12px;padding:4px}
+.tabs button{flex:1;padding:8px 2px;font-size:13px;font-weight:600;color:var(--mut);border-radius:9px;white-space:nowrap}
+.tabs button.on{background:var(--bg);color:var(--fg)}
+.search{grid-area:search;display:flex;align-items:center;gap:8px;height:40px;padding:0 14px;background:var(--card);border:1px solid var(--line);border-radius:20px;color:var(--mut)}
+.search input{flex:1;min-width:0;background:none;border:0;outline:0;color:var(--fg)}
+#logout{grid-area:out}
+main{max-width:1300px;margin:0 auto;padding:16px 14px}
+.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap;padding:22px;border-radius:18px;margin-bottom:14px;background:linear-gradient(135deg,rgba(139,92,246,.38),rgba(236,72,153,.2) 55%,rgba(27,27,34,.4))}
+.hero h2{font-size:28px;margin:4px 0}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+button.pri,label.pri{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:22px;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--acc),var(--acc2));cursor:pointer}
+button.ghost{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:22px;background:var(--card);border:1px solid var(--line)}
+button.ghost:hover{background:#24242d}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 12px}
+.bar h2{margin:0}
+.chips{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.chip{padding:7px 14px;border-radius:18px;background:var(--card);border:1px solid var(--line);font-size:14px}
+.chip.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.sp{flex:1}
+select{padding:8px 12px;border-radius:18px;background:var(--card);border:1px solid var(--line);color:var(--fg)}
+.in,.edbox input,#login input{width:100%;padding:10px 12px;border-radius:10px;background:var(--bg2);border:1px solid var(--line);outline:0;color:var(--fg)}
+.in:focus,.edbox input:focus,#login input:focus{border-color:var(--acc)}
+.tl{list-style:none;margin:0;padding:0}
+.tl li{display:flex;align-items:center;gap:12px;padding:8px 8px;border-radius:10px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04)}
+.tl li:hover{background:var(--card)}
+.tl li.on{background:rgba(139,92,246,.15)}
+.tl li.on .ti{color:var(--acc)}
+.num{width:24px;text-align:center;color:var(--mut);font-size:14px;flex:none;display:flex;justify-content:center}
+.num svg{width:16px;height:16px;color:var(--acc)}
+.th{width:48px;height:48px;border-radius:6px;object-fit:cover;background:var(--card);flex:none;display:flex;align-items:center;justify-content:center;color:var(--mut)}
+.th.clk{cursor:pointer;outline:2px solid transparent}
+.th.clk:hover{outline-color:var(--acc)}
+.tx{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ar{color:var(--mut)}
+.ti{font-weight:600}
+.dur{color:var(--mut);font-size:13px;display:flex;align-items:center;gap:6px;flex:none}
+.dl{display:inline-flex;color:var(--acc)}
+.dl svg{width:14px;height:14px}
+.ra{display:flex;gap:0;flex:none}
+.ib{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;color:var(--mut);flex:none}
+.ib:hover{color:var(--fg);background:rgba(255,255,255,.08)}
+.ib.act{color:var(--acc)}
+.ib.hot{color:#f43f5e}
+li.ed{cursor:default;align-items:flex-start}
+li.ed:hover{background:none}
+.edbox{flex:1;min-width:0;display:grid;grid-template-columns:1fr;gap:8px}
+.up{border:2px dashed var(--line);border-radius:18px;padding:30px 18px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px;background:var(--bg2)}
+.up.over{border-color:var(--acc);background:rgba(139,92,246,.08)}
+.up .big svg{width:42px;height:42px;color:var(--acc)}
+.opt{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;font-size:14px}
+.st{width:100%;text-align:left}
+.st div{font-size:14px;margin-top:6px;word-break:break-all}
+#login{max-width:380px;margin:10vh auto 0;padding:26px;background:var(--card);border:1px solid var(--line);border-radius:18px;display:flex;flex-direction:column;gap:12px}
+#login h2{text-align:center;margin:0 0 4px}
+.err{color:#f87171;font-size:14px;min-height:20px}
+#player{position:fixed;left:0;right:0;bottom:0;z-index:18;background:rgba(21,21,26,.95);backdrop-filter:blur(16px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.pin{max-width:1300px;margin:0 auto;padding:8px 14px;display:grid;grid-template-columns:1fr;grid-template-areas:"pr" "pt" "pc";gap:6px;align-items:center}
+.pr{grid-area:pr;display:flex;align-items:center;gap:10px;min-width:0}
+.pt{grid-area:pt;display:flex;align-items:center;gap:10px;font-size:12px;color:var(--mut)}
+.pt span{width:36px;text-align:center;flex:none}
+.pc{grid-area:pc;display:flex;align-items:center;justify-content:center;gap:12px}
+.play{width:46px;height:46px;border-radius:50%;color:#fff;background:linear-gradient(135deg,var(--acc),var(--acc2));display:flex;align-items:center;justify-content:center}
+.play svg{width:22px;height:22px}
+.cov{width:44px;height:44px;border-radius:6px;object-fit:cover;flex:none}
+.pn{flex:1;min-width:0}
+#now{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#vol,#mute{display:none}
+input[type=range]{-webkit-appearance:none;appearance:none;height:4px;border-radius:2px;outline:0;border:0;padding:0;background:linear-gradient(to right,var(--acc) var(--p,0%),#3a3a46 var(--p,0%));cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:#fff;opacity:0}
+input[type=range]:hover::-webkit-slider-thumb,input[type=range]:active::-webkit-slider-thumb{opacity:1}
+input[type=range]::-moz-range-thumb{width:13px;height:13px;border:0;border-radius:50%;background:#fff}
+#seek{flex:1;min-width:0}
+#msg{position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:40;max-width:90vw;background:var(--card);border:1px solid var(--line);padding:8px 14px;border-radius:12px;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
 #msg:empty{display:none}
-#qPanel{position:fixed;right:12px;z-index:20;width:min(360px,calc(100vw - 24px));max-height:55vh;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.35);padding:6px}
-#qPanel .h{padding:8px 10px;font-weight:600}
+#qPanel{position:fixed;right:12px;z-index:25;width:min(380px,calc(100vw - 24px));max-height:55vh;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,.6);padding:8px}
+#qPanel .h{padding:8px 10px;font-weight:700}
 #qPanel .qi{padding:10px;border-radius:8px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#qPanel .qi.on{background:var(--bg);font-weight:600}
-li.ed{cursor:default;gap:10px}
-.edbox{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
-.edbox input{width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--fg)}
-li.pl .tt{font-weight:600}
-h2{font-size:17px;margin:4px 0 10px}
+#qPanel .qi:hover{background:var(--bg2)}
+#qPanel .qi.on{background:rgba(139,92,246,.18);font-weight:700}
+dialog{background:var(--card);color:var(--fg);border:1px solid var(--line);border-radius:16px;padding:16px;min-width:280px;max-width:92vw;max-height:80vh;overflow:auto}
+dialog::backdrop{background:rgba(0,0,0,.6)}
+.mi{display:block;width:100%;text-align:left;padding:12px 14px;border-radius:10px;margin:4px 0;background:var(--bg2)}
+.mi:hover{background:#262630}
+@media (min-width:600px){.edbox{grid-template-columns:1fr 1fr}}
 @media (min-width:900px){
   body{padding-bottom:110px}
-  main{max-width:1300px;padding:24px 40px}
-  #list,#editList,#plTracks,#plList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:28px;align-content:start}
-  #player .in{max-width:1300px;display:grid;grid-template-columns:minmax(180px,1fr) minmax(280px,2fr) auto;align-items:center;gap:20px}
-  #player .np{margin-bottom:0}
-  #player .ctl{margin-top:0;flex-wrap:nowrap}
-  .ctl button,.ctl #qBtn{flex:0 0 auto;padding:10px 16px}
-  .tabs{max-width:640px}
+  .top{position:sticky;top:0;grid-template-columns:auto 1fr auto auto;grid-template-areas:"brand nav search out";gap:12px 28px;padding:12px 28px}
+  .tabs{background:none;padding:0;gap:6px}
+  .tabs button{flex:none;padding:10px 14px;font-size:15px;border-radius:8px}
+  .tabs button:hover{color:var(--fg)}
+  .tabs button.on{background:none;color:var(--fg);box-shadow:inset 0 -2px 0 var(--acc)}
+  .search{width:min(360px,30vw)}
+  main{padding:24px 28px}
+  .pin{padding:10px 28px;grid-template-columns:auto minmax(220px,1fr) minmax(280px,auto);grid-template-areas:"pc pt pr";gap:28px}
+  .pc{gap:6px}
+  #vol,#mute{display:flex}
+  #vol{display:block;width:90px}
+  .pn{max-width:240px}
 }
-@media (min-width:1500px){
-  main,#player .in{max-width:1700px}
-  #list,#editList,#plTracks,#plList{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media (min-width:1100px){
+  #list,#editList,#plTracks,#plList{display:grid;grid-template-columns:1fr 1fr;column-gap:32px;align-content:start}
 }
 </style>
 </head>
 <body>
-<main>
-  <header class="top">
-    <h1>Musecoll</h1>
-    <button class="ghost hide" id="logout">로그아웃</button>
-  </header>
+<svg width="0" height="0" style="position:absolute"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#ec4899"/></linearGradient></defs></svg>
 
+<header class="top">
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 24 24" fill="url(#lg)"><rect x="2" y="9" width="3" height="6" rx="1.5"/><rect x="7" y="5" width="3" height="14" rx="1.5"/><rect x="12" y="2" width="3" height="20" rx="1.5"/><rect x="17" y="7" width="3" height="10" rx="1.5"/></svg>
+    <span>Musecoll</span>
+  </div>
+  <nav id="nav" class="tabs hide">
+    <button id="nv-lib" data-t="lib" class="on">듣기</button>
+    <button id="nv-edit" data-t="edit">곡 편집</button>
+    <button id="nv-add" data-t="add">곡 추가</button>
+    <button id="nv-pl" data-t="pl">플레이리스트</button>
+  </nav>
+  <label id="searchBox" class="search hide"><span data-ic="search"></span><input id="q" type="search" placeholder="곡 검색 (제목, 아티스트)"></label>
+  <button class="ib hide" id="logout" data-ic="logout" title="로그아웃"></button>
+</header>
+
+<main>
   <section id="login" class="hide">
+    <h2>로그인</h2>
     <input id="em" type="email" placeholder="이메일" autocomplete="username">
     <input id="pw" type="password" placeholder="비밀번호" autocomplete="current-password">
     <div class="err" id="lerr"></div>
-    <button id="lbtn">로그인</button>
+    <button class="pri" id="lbtn" style="justify-content:center">로그인</button>
   </section>
-
-  <nav id="nav" class="tabs hide">
-    <button id="nv-lib" data-t="lib" class="on">🎵<br>듣기</button>
-    <button id="nv-edit" data-t="edit">✏️<br>곡 편집</button>
-    <button id="nv-add" data-t="add">＋<br>곡 추가</button>
-    <button id="nv-pl" data-t="pl">📃<br>플레이리스트</button>
-  </nav>
 
   <section id="app" class="hide">
     <div id="tab-lib">
-      <div class="bar">
-        <input id="q" type="search" placeholder="곡 검색 (제목, 아티스트)">
+      <div class="hero">
+        <div><div class="mut sm">라이브러리</div><h2 id="libTitle">전체 곡</h2><div class="mut" id="libSub"></div></div>
+        <div class="acts">
+          <button class="pri" id="playAll"><span data-ic="play"></span>재생</button>
+          <button class="ghost" id="shufAll"><span data-ic="shuffle"></span>셔플 재생</button>
+        </div>
       </div>
-      <div class="bar">
-        <select id="scope" class="grow" style="flex:1;min-width:0"><option value="">전체 곡</option><option value="fav">♥ 즐겨찾기</option></select>
+      <div class="chips">
+        <button class="chip on" id="sc-all">전체 곡</button>
+        <button class="chip" id="sc-fav">♥ 즐겨찾기</button>
+        <span class="sp"></span>
         <select id="sort">
           <option value="new">최신순</option><option value="old">오래된순</option>
           <option value="title">이름순</option><option value="artist">아티스트순</option>
         </select>
       </div>
-      <ul id="list"></ul>
+      <ul id="list" class="tl"></ul>
       <p class="mut" id="empty"></p>
     </div>
 
     <div id="tab-edit" class="hide">
       <h2>곡 정보 수정</h2>
       <p class="mut">자켓 사진을 누르면 이미지를 바꿀 수 있어요. 제목·아티스트는 입력하고 칸 밖을 누르면 저장돼요.</p>
-      <div class="bar"><input id="q2" type="search" placeholder="수정할 곡 검색"></div>
-      <ul id="editList"></ul>
+      <div class="bar"><input id="q2" class="in" type="search" placeholder="수정할 곡 검색"></div>
+      <ul id="editList" class="tl"></ul>
     </div>
 
     <div id="tab-add" class="hide">
       <h2>곡 추가</h2>
       <p class="mut" id="usage"></p>
-      <div class="up">
-      <label>곡 추가 (mp3, wav · 여러 개 선택 가능)<br>
-        <input id="file" type="file" accept=".mp3,.wav,audio/mpeg,audio/wav" multiple>
-      </label>
-      <div class="mut" style="margin-top:8px">
-        <label><input type="checkbox" id="conv" checked> wav는 mp3로 변환해서 올리기 (용량 절약)</label>
-        <select id="kbps"><option value="192" selected>192kbps</option><option value="256">256kbps</option><option value="320">320kbps</option></select>
+      <div class="up" id="drop">
+        <div class="big" data-ic="upload"></div>
+        <div>mp3, wav 파일을 여기로 끌어다 놓거나 선택하세요 (여러 개 가능)</div>
+        <label class="pri">파일 선택<input id="file" type="file" accept=".mp3,.wav,audio/mpeg,audio/wav" multiple hidden></label>
+        <div class="opt mut">
+          <label><input type="checkbox" id="conv" checked> wav는 mp3로 변환해서 올리기 (용량 절약)</label>
+          <select id="kbps"><option value="192" selected>192kbps</option><option value="256">256kbps</option><option value="320">320kbps</option></select>
+        </div>
+        <div class="st" id="st"></div>
       </div>
-      <div class="st" id="st"></div>
-    </div>
     </div>
 
     <div id="tab-pl" class="hide">
       <div id="plListView">
-        <div class="bar"><h2 style="margin:0">플레이리스트</h2><button id="plNew">＋ 새 목록</button></div>
-        <ul id="plList"></ul>
+        <div class="bar"><h2>플레이리스트</h2><button class="pri" id="plNew"><span data-ic="plus"></span>새 목록</button></div>
+        <ul id="plList" class="tl"></ul>
         <p class="mut" id="plEmpty0"></p>
       </div>
       <div id="plDetail" class="hide">
-        <div class="bar"><button class="ghost" id="plBack">← 목록</button><h2 style="margin:0;flex:1" id="plName"></h2></div>
-        <div class="bar">
-          <button id="plPlay">▶ 재생</button>
-          <button class="ghost" id="plSave">⬇ 저장</button>
-          <button class="ghost" id="plRen">이름</button>
-          <button class="ghost" id="plDel">삭제</button>
+        <div class="hero">
+          <div><button class="ghost sm" id="plBack">← 목록</button><h2 id="plName"></h2></div>
+          <div class="acts">
+            <button class="pri" id="plPlay"><span data-ic="play"></span>재생</button>
+            <button class="ghost" id="plSave">기기에 저장</button>
+            <button class="ghost" id="plRen">이름</button>
+            <button class="ghost" id="plDel">삭제</button>
+          </div>
         </div>
-        <ul id="plTracks"></ul>
+        <ul id="plTracks" class="tl"></ul>
         <p class="mut" id="plEmpty"></p>
       </div>
     </div>
@@ -163,27 +224,59 @@ h2{font-size:17px;margin:4px 0 10px}
 </main>
 
 <div id="player" class="hide">
-  <div class="in">
-    <div class="np"><img id="pcov" class="cov hide" alt=""><div id="now">재생 중인 곡이 없어요</div></div>
-    <audio id="audio" controls preload="none"></audio>
-    <div class="ctl">
-      <button class="ghost" id="prev" title="이전">⏮</button>
-      <button class="ghost" id="next" title="다음">⏭</button>
-      <button class="ghost" id="shuf" title="셔플">🔀</button>
-      <button class="ghost" id="rep" title="반복">🔁</button>
-      <button class="ghost" id="favBtn" title="즐겨찾기">♡</button>
-      <button class="ghost" id="qBtn">☰ 대기열</button>
+  <div class="pin">
+    <div class="pc">
+      <button class="ib" id="shuf" data-ic="shuffle" title="셔플"></button>
+      <button class="ib" id="prev" data-ic="prev" title="이전"></button>
+      <button class="play" id="pp" title="재생/일시정지"></button>
+      <button class="ib" id="next" data-ic="next" title="다음"></button>
+      <button class="ib" id="rep" data-ic="repeat" title="반복"></button>
     </div>
+    <div class="pt"><span id="tcur">0:00</span><input id="seek" type="range" min="0" max="1000" value="0"><span id="tdur">0:00</span></div>
+    <div class="pr">
+      <button class="ib" id="mute" title="음소거"></button><input id="vol" type="range" min="0" max="100" value="100">
+      <img id="pcov" class="cov hide" alt="">
+      <div class="pn"><div id="now">재생 중인 곡이 없어요</div></div>
+      <button class="ib" id="favBtn" title="즐겨찾기"></button>
+      <button class="ib" id="qBtn" data-ic="queue" title="재생 대기열"></button>
+    </div>
+    <audio id="audio" preload="none"></audio>
   </div>
 </div>
 
 <p id="msg"></p>
 <div id="qPanel" class="hide"></div>
-<dialog id="dlg"><div id="dlgBody"></div><button class="ghost" id="dlgX">닫기</button></dialog>
+<dialog id="dlg"><div id="dlgBody"></div><button class="mi" id="dlgX">닫기</button></dialog>
 <input id="coverIn" type="file" accept="image/*" class="hide">
 
 <script>
 const $ = (s) => document.querySelector(s);
+const I = (p, f) => '<svg viewBox="0 0 24 24"' + (f ? ' class="f"' : "") + ">" + p + "</svg>";
+const RP = '<polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>';
+const HP = '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>';
+const VP = '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>';
+const ICONS = {
+  play: I('<path d="M8 5v14l11-7z"/>', 1), pause: I('<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>', 1),
+  prev: I('<path d="M6 5h2v14H6zM19 5v14L8 12z"/>', 1), next: I('<path d="M16 5h2v14h-2zM5 5v14l11-7z"/>', 1),
+  shuffle: I('<polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/>'),
+  repeat: I(RP), repeat1: I(RP + '<path d="M11 10l1.5-1v6"/>'),
+  heart: I(HP), heartF: I(HP, 1),
+  queue: I('<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>'),
+  vol: I(VP + '<path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>'),
+  mute: I(VP + '<line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>'),
+  more: I('<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>', 1),
+  search: I('<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>'),
+  logout: I('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>'),
+  plus: I('<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>'),
+  up: I('<polyline points="18 15 12 9 6 15"/>'), down: I('<polyline points="6 9 12 15 18 9"/>'),
+  trash: I('<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>'),
+  music: I('<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>'),
+  dl: I('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>'),
+  upload: I('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>'),
+};
+const setIc = (el, name) => (el.innerHTML = ICONS[name]);
+document.querySelectorAll("[data-ic]").forEach((e) => setIc(e, e.dataset.ic));
+setIc($("#pp"), "play"); setIc($("#favBtn"), "heart"); setIc($("#mute"), "vol");
 const audio = $("#audio");
 let CFG, S = null, tracks = [], curId = null, shuffle = false, rep = 0, queue = [], qpos = -1, plists = [], plId = null, plItems = [], coverTarget = null, allPl = [], saved = new Set(), curBlob = null, favView = false, pendingSeek = 0, lastSave = 0;
 const LIMIT_GB = 9.5;
@@ -269,32 +362,52 @@ const coverUrl = (t) => (t.cover_path ? CFG.url + "/storage/v1/object/public/cov
 function thumb(t, onclick) {
   const th = document.createElement(t.cover_path ? "img" : "div");
   th.className = "th";
-  if (t.cover_path) th.src = coverUrl(t); else th.textContent = "♪";
-  if (onclick) th.onclick = onclick; else th.style.cursor = "default";
+  if (t.cover_path) { th.src = coverUrl(t); th.alt = ""; th.loading = "lazy"; } else th.innerHTML = ICONS.music;
+  if (onclick) { th.onclick = onclick; th.classList.add("clk"); }
   return th;
 }
 function rowsInto(ul, v, mode) {
   ul.replaceChildren();
   v.forEach((t, n) => {
     const li = document.createElement("li");
-    if (t.id === curId) li.className = "on";
-    const a = document.createElement("span");
-    a.className = "tt";
-    a.textContent = t.title + (t.artist ? " — " + t.artist : "");
-    const b = document.createElement("span");
-    b.className = "mut";
-    b.textContent = (saved.has(t.file_key) ? "⬇ " : "") + fmt(t.duration_sec);
-    li.append(thumb(t), a, b);
-    if (mode === "pl") li.append(btn("▲", () => move(n, -1)), btn("▼", () => move(n, 1)));
-    const hb = btn(t.fav ? "♥" : "♡", () => toggleFav(t));
-    if (t.fav) hb.style.color = "#ef4444";
-    li.append(hb, btn("⋯", () => menu(t, mode)));
+    const playing = t.id === curId;
+    if (playing) li.className = "on";
+    const num = document.createElement("span");
+    num.className = "num";
+    if (playing) num.innerHTML = ICONS.play; else num.textContent = n + 1;
+    const tx = document.createElement("span");
+    tx.className = "tx";
+    if (t.artist) {
+      const ar = document.createElement("span");
+      ar.className = "ar";
+      ar.textContent = t.artist;
+      tx.append(ar, " · ");
+    }
+    const ti = document.createElement("span");
+    ti.className = "ti";
+    ti.textContent = t.title;
+    tx.append(ti);
+    const du = document.createElement("span");
+    du.className = "dur";
+    if (saved.has(t.file_key)) du.innerHTML = '<i class="dl">' + ICONS.dl + "</i>";
+    du.append(fmt(t.duration_sec));
+    const ra = document.createElement("span");
+    ra.className = "ra";
+    if (mode === "pl") ra.append(btn("up", () => move(n, -1), "위로"), btn("down", () => move(n, 1), "아래로"));
+    const hb = btn(t.fav ? "heartF" : "heart", () => toggleFav(t), "즐겨찾기");
+    if (t.fav) hb.classList.add("hot");
+    ra.append(hb, btn("more", () => menu(t, mode), "더 보기"));
+    li.append(num, thumb(t), tx, du, ra);
     li.onclick = () => { ctx = mode; play(byId(t.id)); };
     ul.append(li);
   });
 }
 function render() {
   const v = libView();
+  $("#libTitle").textContent = favView ? "즐겨찾기" : "전체 곡";
+  $("#libSub").textContent = v.length + "곡" + ($("#q").value.trim() ? " · 검색 결과" : "");
+  $("#sc-all").classList.toggle("on", !favView);
+  $("#sc-fav").classList.toggle("on", favView);
   $("#empty").textContent = v.length ? ""
     : $("#q").value.trim() ? "검색 결과가 없어요."
     : favView ? "즐겨찾기한 곡이 없어요. 곡 옆의 ♡를 눌러 보세요."
@@ -305,10 +418,11 @@ function render() {
   $("#plEmpty").textContent = plId && !pv.length ? "비어 있어요. '듣기' 탭에서 곡 옆의 ⋯ 메뉴로 담아 보세요." : "";
   syncFavBtn();
 }
-const btn = (label, fn) => {
+const btn = (name, fn, title) => {
   const b = document.createElement("button");
-  b.className = "sm";
-  b.textContent = label;
+  b.className = "ib";
+  b.innerHTML = ICONS[name] || name;
+  if (title) b.title = title;
   b.onclick = (e) => { e.stopPropagation(); fn(); };
   return b;
 };
@@ -397,6 +511,10 @@ async function prefetch() {
   } catch {}
 }
 function announce(t) {
+  $("#tdur").textContent = tfmt(t.duration_sec);
+  $("#tcur").textContent = "0:00";
+  $("#seek").value = 0;
+  fill($("#seek"));
   if (!("mediaSession" in navigator)) return;
   const cu = coverUrl(t);
   navigator.mediaSession.metadata = new MediaMetadata({
@@ -462,7 +580,7 @@ $("#shuf").onclick = () => {
 };
 $("#rep").onclick = () => {
   rep = (rep + 1) % 3;
-  $("#rep").textContent = ["🔁", "🔁", "🔂"][rep];
+  setIc($("#rep"), ["repeat", "repeat", "repeat1"][rep]);
   $("#rep").classList.toggle("act", rep > 0);
   audio.loop = rep === 2;
 };
@@ -654,16 +772,19 @@ function applyPl() {
   ul.replaceChildren();
   $("#plEmpty0").textContent = plists.length ? "" : "아직 플레이리스트가 없어요. '＋ 새 목록'으로 만들어 보세요.";
   plists.forEach((p) => {
-    const n = allPl.filter((r) => r.playlist_id === p.id).length;
+    const items = allPl.filter((r) => r.playlist_id === p.id);
+    const first = tracks[byId(items[0] && items[0].track_id)] || {};
     const li = document.createElement("li");
-    li.className = "pl";
-    const a = document.createElement("span");
-    a.className = "tt";
-    a.textContent = "📃 " + p.name;
+    const tx = document.createElement("span");
+    tx.className = "tx";
+    const ti = document.createElement("span");
+    ti.className = "ti";
+    ti.textContent = p.name;
+    tx.append(ti);
     const c = document.createElement("span");
-    c.className = "mut";
-    c.textContent = n + "곡";
-    li.append(a, c);
+    c.className = "dur";
+    c.textContent = items.length + "곡";
+    li.append(thumb(first), tx, c);
     li.onclick = () => { plId = p.id; applyPl(); };
     ul.append(li);
   });
@@ -684,7 +805,7 @@ function pick(title, items) {
     body.append(h);
     items.forEach((name, i) => {
       const b = document.createElement("button");
-      b.className = "ghost";
+      b.className = "mi";
       b.textContent = name;
       b.onclick = () => { sel = i; d.close(); };
       body.append(b);
@@ -726,7 +847,9 @@ async function move(n, d) {
   });
   await loadPlaylists();
 }
-$("#scope").onchange = () => { favView = $("#scope").value === "fav"; render(); saveResume(true); };
+function setScope(fav) { favView = fav; render(); saveResume(true); }
+$("#sc-all").onclick = () => setScope(false);
+$("#sc-fav").onclick = () => setScope(true);
 $("#plBack").onclick = () => { plId = null; applyPl(); };
 $("#plPlay").onclick = () => {
   const v = plTracks();
@@ -795,7 +918,7 @@ $("#coverIn").onchange = async (e) => {
 function cacheNow() { try { localStorage.setItem("cache", JSON.stringify({ tracks, plists, allPl })); } catch {} }
 function syncFavBtn() {
   const t = tracks[byId(curId)], b = $("#favBtn");
-  b.textContent = t && t.fav ? "♥" : "♡";
+  setIc(b, t && t.fav ? "heartF" : "heart");
   b.classList.toggle("act", !!(t && t.fav));
 }
 async function toggleFav(t) {
@@ -866,7 +989,7 @@ document.addEventListener("pointerdown", (e) => {
   if (qOpen() && !qPanel.contains(e.target) && !$("#qBtn").contains(e.target)) toggleQueue(false);
 });
 
-$("#q").oninput = () => render();
+$("#q").oninput = () => { if (tab !== "lib") showTab("lib"); render(); };
 $("#sort").onchange = () => { render(); saveResume(true); };
 
 // 이어 듣기: 마지막 곡, 위치, 설정을 이 기기에 기억
@@ -887,7 +1010,7 @@ document.addEventListener("visibilitychange", () => { if (document.hidden) saveR
 
 function ctlUi() {
   $("#shuf").classList.toggle("act", shuffle);
-  $("#rep").textContent = ["🔁", "🔁", "🔂"][rep];
+  setIc($("#rep"), ["repeat", "repeat", "repeat1"][rep]);
   $("#rep").classList.toggle("act", rep > 0);
 }
 async function restore() {
@@ -903,7 +1026,6 @@ async function restore() {
   ctlUi();
   if (r.sort) $("#sort").value = r.sort;
   favView = !!r.favView;
-  $("#scope").value = favView ? "fav" : "";
   render();
   const i = byId(r.curId);
   if (i < 0) return;
@@ -966,7 +1088,7 @@ function renderEdit() {
       if (v !== (t.artist || null)) saveField(t, { artist: v });
     };
     box.append(ti, ar);
-    li.append(thumb(t, () => { coverTarget = t; $("#coverIn").click(); }), box, btn("🗑", () => del(t)));
+    li.append(thumb(t, () => { coverTarget = t; $("#coverIn").click(); }), box, btn("trash", () => del(t), "삭제"));
     ul.append(li);
   });
   if (!ul.children.length) { const e = document.createElement("li"); e.className = "ed mut"; e.textContent = "곡이 없어요."; ul.append(e); }
@@ -984,12 +1106,51 @@ function showTab(n) {
 }
 document.querySelectorAll("#nav button").forEach((b) => (b.onclick = () => showTab(b.dataset.t)));
 
+/* ---------- 재생바: 재생/일시정지, 진행 막대, 볼륨 ---------- */
+const tfmt = (x) => (isFinite(x) && x > 0 ? Math.floor(x / 60) + ":" + String(Math.floor(x % 60)).padStart(2, "0") : "0:00");
+const fill = (el) => el.style.setProperty("--p", (el.value / el.max) * 100 + "%");
+let seeking = false;
+const syncPP = () => setIc($("#pp"), audio.paused ? "play" : "pause");
+$("#pp").onclick = () => { if (!audio.src) { const v = libView(); if (v.length) { ctx = "lib"; play(byId(v[0].id)); } return; } audio.paused ? audio.play() : audio.pause(); };
+["play", "pause", "ended"].forEach((ev) => audio.addEventListener(ev, syncPP));
+audio.addEventListener("timeupdate", () => {
+  $("#tcur").textContent = tfmt(audio.currentTime);
+  if (!seeking && audio.duration) { $("#seek").value = (audio.currentTime / audio.duration) * 1000; fill($("#seek")); }
+});
+["loadedmetadata", "durationchange"].forEach((ev) => audio.addEventListener(ev, () => { if (isFinite(audio.duration)) $("#tdur").textContent = tfmt(audio.duration); }));
+$("#seek").oninput = () => { seeking = true; fill($("#seek")); if (audio.duration) $("#tcur").textContent = tfmt(($("#seek").value / 1000) * audio.duration); };
+$("#seek").onchange = () => { if (audio.duration) audio.currentTime = ($("#seek").value / 1000) * audio.duration; seeking = false; };
+const vol0 = Number(localStorage.getItem("vol") ?? 100);
+$("#vol").value = vol0; audio.volume = vol0 / 100; fill($("#vol")); setIc($("#mute"), vol0 ? "vol" : "mute");
+$("#vol").oninput = () => {
+  const v = Number($("#vol").value);
+  audio.volume = v / 100; audio.muted = false; fill($("#vol"));
+  setIc($("#mute"), v ? "vol" : "mute");
+  localStorage.setItem("vol", v);
+};
+$("#mute").onclick = () => { audio.muted = !audio.muted; setIc($("#mute"), audio.muted || !audio.volume ? "mute" : "vol"); };
+
+$("#playAll").onclick = () => { const v = libView(); if (!v.length) return; ctx = "lib"; play(byId(v[0].id)); };
+$("#shufAll").onclick = () => {
+  const v = libView();
+  if (!v.length) return;
+  shuffle = true; ctlUi(); ctx = "lib";
+  play(byId(v[Math.floor(Math.random() * v.length)].id));
+};
+
+/* 업로드 영역에 파일 끌어다 놓기 */
+const drop = $("#drop");
+["dragenter", "dragover"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", async (e) => { for (const f of e.dataTransfer.files) await up(f); await load(); });
+
 /* ---------- 시작 ---------- */
 function start() {
   $("#login").classList.add("hide");
   $("#app").classList.remove("hide");
   $("#player").classList.remove("hide");
   $("#nav").classList.remove("hide");
+  $("#searchBox").classList.remove("hide");
   $("#logout").classList.remove("hide");
   showTab("lib");
   refreshSaved();
