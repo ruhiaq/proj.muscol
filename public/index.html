@@ -264,23 +264,39 @@ function buildQueue(startId) {
   queue = ids;
   qpos = Math.max(0, ids.indexOf(startId));
 }
+let pre = null; // 미리 준비해 둔 다음 곡 {id, url, blob}
+async function resolveSrc(t) {
+  if (pre && pre.id === t.id) { const p = pre; pre = null; return p; }
+  if (saved.has(t.file_key)) {
+    const blob = await store("readonly", (x) => x.get(t.file_key));
+    if (blob) return { id: t.id, url: URL.createObjectURL(blob), blob: true };
+  }
+  if (!navigator.onLine) throw new Error("오프라인이라 저장된(⬇) 곡만 재생할 수 있어요");
+  return { id: t.id, url: await urlFor(t.file_key), blob: false };
+}
+async function prefetch() {
+  if (!queue.length) return;
+  let p = qpos + 1;
+  if (p >= queue.length) { if (rep !== 1) return; p = 0; }
+  const t = tracks[byId(queue[p])];
+  if (!t || (pre && pre.id === t.id)) return;
+  try {
+    const r = await resolveSrc(t);
+    if (pre && pre.blob) URL.revokeObjectURL(pre.url);
+    pre = r;
+  } catch {}
+}
 async function play(i, keep) {
   const t = tracks[i];
   if (!t) return;
   curId = t.id;
   if (!keep) buildQueue(t.id);
   try {
-    const blob = saved.has(t.file_key) ? await store("readonly", (x) => x.get(t.file_key)) : null;
-    if (blob) {
-      const prev = curBlob;
-      curBlob = URL.createObjectURL(blob);
-      audio.src = curBlob;
-      if (prev) URL.revokeObjectURL(prev);
-    } else {
-      if (!navigator.onLine) throw new Error("오프라인이라 저장된(⬇) 곡만 재생할 수 있어요");
-      if (curBlob) { URL.revokeObjectURL(curBlob); curBlob = null; }
-      audio.src = await urlFor(t.file_key);
-    }
+    const r = await resolveSrc(t);
+    const prev = curBlob;
+    curBlob = r.blob ? r.url : null;
+    audio.src = r.url;
+    if (prev) URL.revokeObjectURL(prev);
     await audio.play();
   } catch (e) { $("#now").textContent = "재생 실패: " + e.message; return; }
   $("#now").textContent = t.title + (t.artist ? " — " + t.artist : "");
@@ -293,6 +309,7 @@ async function play(i, keep) {
       title: t.title, artist: t.artist || "",
       artwork: cu ? [{ src: cu, sizes: "600x600", type: "image/jpeg" }] : [],
     });
+  prefetch();
 }
 function step(d, auto) {
   if (!queue.length) return;
@@ -502,6 +519,7 @@ function applyPl() {
 function pick(title, items) {
   return new Promise((ok) => {
     const d = $("#dlg"), body = $("#dlgBody");
+    let sel = -1;
     body.replaceChildren();
     const h = document.createElement("div");
     h.textContent = title;
@@ -511,10 +529,10 @@ function pick(title, items) {
       const b = document.createElement("button");
       b.className = "ghost";
       b.textContent = name;
-      b.onclick = () => { ok(i); d.close(); };
+      b.onclick = () => { sel = i; d.close(); };
       body.append(b);
     });
-    d.onclose = () => ok(-1);
+    d.onclose = () => ok(sel); // 창이 완전히 닫힌 뒤에 결과를 돌려줘야 다음 창과 겹치지 않음
     d.showModal();
   });
 }
