@@ -286,11 +286,27 @@ async function prefetch() {
     pre = r;
   } catch {}
 }
+function announce(t) {
+  if (!("mediaSession" in navigator)) return;
+  const cu = coverUrl(t);
+  navigator.mediaSession.metadata = new MediaMetadata({
+    title: t.title, artist: t.artist || "",
+    artwork: cu ? [{ src: cu, sizes: "600x600", type: "image/jpeg" }] : [],
+  });
+  navigator.mediaSession.playbackState = "playing";
+}
+function syncPos() {
+  try {
+    if ("mediaSession" in navigator && isFinite(audio.duration))
+      navigator.mediaSession.setPositionState({ duration: audio.duration, position: audio.currentTime, playbackRate: audio.playbackRate });
+  } catch {}
+}
 async function play(i, keep) {
   const t = tracks[i];
   if (!t) return;
   curId = t.id;
   if (!keep) buildQueue(t.id);
+  announce(t); // 화면이 꺼져 있어도 반영되도록 가장 먼저 갱신
   try {
     const r = await resolveSrc(t);
     const prev = curBlob;
@@ -298,24 +314,23 @@ async function play(i, keep) {
     audio.src = r.url;
     if (prev) URL.revokeObjectURL(prev);
     await audio.play();
-  } catch (e) { $("#now").textContent = "재생 실패: " + e.message; return; }
+  } catch (e) {
+    $("#now").textContent = "재생 실패: " + e.message;
+    if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "paused";
+    return;
+  }
   $("#now").textContent = t.title + (t.artist ? " — " + t.artist : "");
   render();
   const cu = coverUrl(t), pc = $("#pcov");
   pc.classList.toggle("hide", !cu);
   if (cu) pc.src = cu;
-  if ("mediaSession" in navigator)
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: t.title, artist: t.artist || "",
-      artwork: cu ? [{ src: cu, sizes: "600x600", type: "image/jpeg" }] : [],
-    });
   prefetch();
 }
 function step(d, auto) {
   if (!queue.length) return;
   if (!auto && d < 0 && audio.currentTime > 3) { audio.currentTime = 0; return; }
   let p = qpos + d;
-  if (p >= queue.length) { if (auto && rep !== 1) return; p = 0; }
+  if (p >= queue.length) { if (auto && rep !== 1) { if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "paused"; return; } p = 0; }
   if (p < 0) p = queue.length - 1;
   qpos = p;
   play(byId(queue[p]), true);
@@ -335,12 +350,17 @@ $("#rep").onclick = () => {
   audio.loop = rep === 2;
 };
 audio.onended = () => step(1, true); // 연속 재생
+audio.addEventListener("play", () => { if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "playing"; });
+audio.addEventListener("pause", () => { if ("mediaSession" in navigator && !audio.ended) navigator.mediaSession.playbackState = "paused"; });
+audio.addEventListener("loadedmetadata", syncPos);
+audio.addEventListener("seeked", syncPos);
 if ("mediaSession" in navigator) {
   const m = navigator.mediaSession;
   m.setActionHandler("play", () => audio.play());
   m.setActionHandler("pause", () => audio.pause());
   m.setActionHandler("previoustrack", () => step(-1));
   m.setActionHandler("nexttrack", () => step(1));
+  m.setActionHandler("seekto", (e) => { if (e.seekTime != null) audio.currentTime = e.seekTime; });
 }
 
 /* ---------- 업로드 ---------- */
