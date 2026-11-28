@@ -295,6 +295,7 @@ function announce(t) {
   });
   navigator.mediaSession.playbackState = "playing";
 }
+let playSeq = 0; // 가장 최근 재생 요청 번호 (겹친 요청의 오래된 오류를 무시하기 위함)
 function syncPos() {
   try {
     if ("mediaSession" in navigator && isFinite(audio.duration))
@@ -306,19 +307,23 @@ async function play(i, keep) {
   if (!t) return;
   curId = t.id;
   if (!keep) buildQueue(t.id);
+  const my = ++playSeq;
   announce(t); // 화면이 꺼져 있어도 반영되도록 가장 먼저 갱신
   try {
     const r = await resolveSrc(t);
+    if (my !== playSeq) { if (r.blob) URL.revokeObjectURL(r.url); return; } // 더 새로운 요청이 있음
     const prev = curBlob;
     curBlob = r.blob ? r.url : null;
     audio.src = r.url;
     if (prev) URL.revokeObjectURL(prev);
     await audio.play();
   } catch (e) {
+    if (my !== playSeq || e.name === "AbortError") return; // 다른 곡 요청에 밀려난 것일 뿐 진짜 실패가 아님
     $("#now").textContent = "재생 실패: " + e.message;
     if ("mediaSession" in navigator) navigator.mediaSession.playbackState = "paused";
     return;
   }
+  if (my !== playSeq) return;
   $("#now").textContent = t.title + (t.artist ? " — " + t.artist : "");
   render();
   const cu = coverUrl(t), pc = $("#pcov");
