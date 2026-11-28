@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Musecoll">
 <style>
-:root{--w:1100px;--bg:#0e0e11;--bg2:#15151a;--card:#1b1b22;--line:#2a2a33;--fg:#f4f4f6;--mut:#9a9aa8;--acc:#8b5cf6;--acc2:#ec4899;color-scheme:dark}
+:root{--w:1680px;--bg:#0e0e11;--bg2:#15151a;--card:#1b1b22;--line:#2a2a33;--fg:#f4f4f6;--mut:#9a9aa8;--acc:#8b5cf6;--acc2:#ec4899;color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;font:15px/1.4 system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:var(--bg);color:var(--fg);padding-bottom:190px}
 button,input,select{font:inherit;color:inherit}
@@ -174,6 +174,18 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
   .np-q{width:min(34vw,420px);max-height:100%;overflow-y:auto;margin-top:0}
   .vol{display:flex}
 }
+#side{display:none}
+.side-art{width:100%;aspect-ratio:1;max-height:340px;border-radius:14px;background:var(--card) center/cover no-repeat;box-shadow:0 18px 44px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;color:var(--mut);cursor:pointer}
+.side-art svg{width:28%;height:28%}
+.side-art:not(.empty) svg{display:none}
+.side-meta{margin:12px 0 4px}
+.side-meta .np-title{font-size:18px}
+#side h3{margin:22px 0 8px;font-size:14px;color:var(--mut);font-weight:600}
+@media (min-width:1100px){
+  main{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:40px;align-items:start}
+  #login{grid-column:1/-1}
+  #side{display:block;position:sticky;top:88px;max-height:calc(100vh - 88px - 96px);overflow-y:auto;padding-bottom:12px}
+}
 </style>
 </head>
 <body>
@@ -268,6 +280,12 @@ dialog::backdrop{background:rgba(0,0,0,.6)}
       </div>
     </div>
   </section>
+  <aside id="side" class="hide">
+    <div id="sideArt" class="side-art empty" title="재생 화면 열기"><span data-ic="music"></span></div>
+    <div class="side-meta"><div id="sideTitle" class="np-title">재생 중인 곡이 없어요</div><div id="sideArtist" class="mut"></div></div>
+    <h3>다음 곡</h3>
+    <div id="sideQ"></div>
+  </aside>
 </main>
 
 <div id="player" class="hide">
@@ -1259,10 +1277,14 @@ function paintNP(t) {
   $("#npBg").style.backgroundImage = cu ? 'url("' + cu + '")' : "";
   $("#npTitle").textContent = t.title;
   $("#npArtist").textContent = t.artist || "";
+  $("#sideArt").style.backgroundImage = cu ? 'url("' + cu + '")' : "";
+  $("#sideArt").classList.toggle("empty", !cu);
+  $("#sideTitle").textContent = t.title;
+  $("#sideArtist").textContent = t.artist || "";
   renderNPQ();
 }
-function renderNPQ() {
-  const box = $("#npQ");
+function renderNPQ() { fillQ($("#npQ")); fillQ($("#sideQ")); }
+function fillQ(box) {
   box.replaceChildren();
   queue.slice(qpos + 1, qpos + 101).forEach((id, k) => {
     const t = tracks[byId(id)];
@@ -1286,6 +1308,7 @@ function renderNPQ() {
 }
 function refreshQueueUIs() { if (qOpen()) renderQueue(); renderNPQ(); }
 $("#npClose").onclick = closeNP;
+$("#sideArt").onclick = openNP;
 $("#npOpen").onclick = $("#pcov").onclick = document.querySelector(".pn").onclick = openNP;
 $("#autoNP").checked = autoOpen();
 $("#autoNP").onchange = () => localStorage.setItem("autoNP", $("#autoNP").checked ? "1" : "0");
@@ -1313,6 +1336,7 @@ function start() {
   $("#app").classList.remove("hide");
   $("#player").classList.remove("hide");
   $("#nav").classList.remove("hide");
+  $("#side").classList.remove("hide");
   $("#searchBox").classList.remove("hide");
   $("#logout").classList.remove("hide");
   showTab("lib");
